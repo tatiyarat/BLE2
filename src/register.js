@@ -69,11 +69,11 @@ export default class register extends Component {
             </View>
 
             <View style={styles.buttonContainer211}>
-                <TouchableHighlight style={[styles.button, styles.buttonMessage]} onPress={() => this.onClickListener('love')}>
+                <TouchableHighlight style={[styles.button, styles.buttonMessage]} onPress={() => this.sendDirectSms()}>
                     <Text>รับรหัสยืนยัน</Text>
                 </TouchableHighlight>
 
-                <TouchableHighlight style={[styles.button, styles.buttonCall]} onPress={() => this.onClickListener('phone')}>
+                <TouchableHighlight style={[styles.button, styles.buttonCall]} onPress={() => this.verifypassword()}>
                     <Text>ยืนยันตัวตน</Text>
                 </TouchableHighlight>
         </View>
@@ -81,6 +81,39 @@ export default class register extends Component {
       </ScrollView>
     );
   }
+
+  convermobile2trackerID(){
+    let str = this.state.mobilenumber;
+     str = str.replace(/0/g, "A");
+     str = str.replace(/1/g, "B");
+     str = str.replace(/2/g, "C");
+     str = str.replace(/3/g, "D");
+     str = str.replace(/4/g, "E");
+     str = str.replace(/5/g, "F");
+     str = str.replace(/6/g, "G");
+     str = str.replace(/7/g, "H");
+     str = str.replace(/8/g, "I");
+     str = str.replace(/9/g, "J");
+     this.state.trackerID = str;
+    // this.setState({trackerID:str});
+    
+    console.log(this.state.trackerID );
+}
+
+  verifypassword(){
+    if(this.state.code != null || this.state.code != ''){
+        if(this.state.SMS4ditgit === this.state.code){
+            this.convermobile2trackerID();
+            
+            Alert.alert("รหัสถูกต้อง: "+this.state.trackerID, "ถูกต้องนะครับบบบบบ ",[{text: "OK"}]);
+            
+        }else{
+            Alert.alert("รหัสผิดพลาด", "รหัสไม่ถูกต้องน่ะครับบบบ");
+        }
+    }else{
+        Alert.alert("Error", "โปรดกรอกรหัสยืนยันตัวตน");
+    }
+}
 
 //   async function to call the Java native method
     sendDirectSms = async () => {
@@ -443,12 +476,6 @@ const styles = StyleSheet.create({
     width:300,
     height:300,
     marginBottom:20,
-  },
-  name:{
-    fontSize:35,
-    marginBottom:20,
-    fontWeight: 'bold',
-    color: '#1E90FF',
   },name:{
     fontSize:25,
     marginBottom:20,

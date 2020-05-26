@@ -9,13 +9,16 @@ import {
   Image,
   Alert,
   AsyncStorage,
-  PixelRatio 
+  PixelRatio,
+  NativeModules,
+  PermissionsAndroid
 } from 'react-native';
 import ImagePicker from 'react-native-image-picker';
 // import { RadioButton} from 'react-native-paper';
 // import { Dropdown } from 'react-native-material-dropdown';
 import {Picker} from '@react-native-community/picker';
-
+import SendSMS from 'react-native-sms';
+var DirectSms = NativeModules.DirectSms;
 export default class register extends Component {
 
   constructor(props) {
@@ -31,35 +34,91 @@ export default class register extends Component {
       password: '',
       confirmPassword: '',
       avatarSource: null,
-      tell:'',
+      mobilenumber:'',
+      code:'',
+      SMS4ditgit:'',
+      trackerID:'',
     }
   }
+  Random4ditgit = () => {
+    let  generatedPassword = (Math.floor(Math.random() * (9999 - 1000 + 1)) + 1000).toString()  ;
+      this.setState({SMS4ditgit:generatedPassword})
+    console.log("MyApp", "Generated Password : " + generatedPassword);
+  
+    }
 
+ vertiy() {
+    return (
+        <ScrollView style={styles.scrollContainer}>
+        <View style={{ padding:20,flex: 1,}}>
+            
+            <View style={styles.box}>
+                <Image style={styles.profileImage} source={{uri: 'https://bootdey.com/img/Content/avatar/avatar6.png'}}/>
+                <Text style={styles.name}>คุณ สุพิน วรรณา</Text>
+                <Text style={styles.subname}>จะได้รับรหัสยืนยัน SMS </Text>
+                <Text style={{ fontSize:14,color:'#1E90FF',marginBottom:20,}}>จากเบอร์โทรศัพท์  0867902524</Text>
+            </View>
+
+            <View style={styles.buttonContainer211}>
+                <View style={styles.inputContainer}>
+                    <TextInput style={styles.inputs}
+                        placeholder="XXXX"
+                        underlineColorAndroid='transparent'
+                        onChangeText={(code) => this.setState({code})}/>
+                </View>
+            </View>
+
+            <View style={styles.buttonContainer211}>
+                <TouchableHighlight style={[styles.button, styles.buttonMessage]} onPress={() => this.onClickListener('love')}>
+                    <Text>รับรหัสยืนยัน</Text>
+                </TouchableHighlight>
+
+                <TouchableHighlight style={[styles.button, styles.buttonCall]} onPress={() => this.onClickListener('phone')}>
+                    <Text>ยืนยันตัวตน</Text>
+                </TouchableHighlight>
+        </View>
+      </View>
+      </ScrollView>
+    );
+  }
+
+//   async function to call the Java native method
+    sendDirectSms = async () => {
+        try {
+            const granted = await PermissionsAndroid.request(
+            PermissionsAndroid.PERMISSIONS.SEND_SMS,
+                {
+                    title: 'YourProject App Sms Permission',
+                    message:
+                    'YourProject App needs access to your inbox ' +
+                    'so you can send messages in background.',
+                    buttonNeutral: 'Ask Me Later',
+                    buttonNegative: 'Cancel',
+                    buttonPositive: 'OK',
+                },
+            );
+            if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+                this.Random4ditgit()
+                DirectSms.sendDirectSms(this.state.mobilenumber, this.state.SMS4ditgit);
+            } else {
+                console.log('SMS permission denied');
+            }
+        } catch (err) {
+            console.warn(err);
+        }
+    }
+
+  
 
   onClickListener = () => {
     this.props.navigation.navigate('Home');
   }
   handleSignUp = async (value) => {
-    // console.log(value.firstname +'asfdsafa');
-    // if(value.firstname == null && value.firstname == "") {
-    //   Alert.alert("Error", "not have firstname ");
-    // }else if (value.lastname == null || value.lastname == "") {
-    //   Alert.alert("Error", "not have lastname ");
-    // }else if (value.Code == null || value.Code == "") {
-    //   Alert.alert("Error", "not have Code ");
-    // }else if (value.tell == null || value.tell == "") {
-    //   Alert.alert("Error", "not have tell ");
-    // }else if (value.email == null || value.email == "") {
-    //   Alert.alert("Error", "not have email ");
-    // }else if (value.confirmPassword == null || value.confirmPassword == "") {
-    //   Alert.alert("Error", "not have confirmPassword ");
-    // }else if (value.password == null || value.password == "") {
-    //   Alert.alert("Error", "not have password ");
-    // }else if (value.avatarSource == null) {
-    //   Alert.alert("Error", "not have avatar");
-    // }
-    // console.log(value);
+
     // Make sure passwords match
+        // console.log('afad');
+
+    // console.log(value.firstname)
     if (value.password === value.confirmPassword) {
         const register = {
           // username: 'namtest',
@@ -67,10 +126,10 @@ export default class register extends Component {
           lastname: value.lastname,
           gender: value.gender,
           old: value.old,
-          tell: value.tell,
+          tell: value.mobilenumber,
           email: value.email,
-          passwordConf:value.confirmPassword,
-          password:value.password,
+        //   passwordConf:value.confirmPassword,
+        //   password:value.password,
   
       }
        const requestOptions = {
@@ -84,15 +143,14 @@ export default class register extends Component {
     
       try {
         const response = await fetch('http://203.150.55.44:3001/register',requestOptions)
-        console.log(response.json())
+        // console.log(response.json())
         const data = await response.json()
         if (data.statusCode == 200) {
+            this.sendDirectSms()
           Alert.alert("success", "Register success",[{text: "OK", onPress: () => this.onClickListener()}]);
         }else{
           Alert.alert("ERROR",data.message)
-        }
-        // console.log(data)
-        
+        }        
       
       } catch (error) {
         Alert.alert("Error", "Wrong email or password ");
@@ -135,16 +193,17 @@ export default class register extends Component {
   }
 
   render() {
-
     return (
-      // <PaperProvider >
-        <ScrollView>
+      <ScrollView>
       <View style={styles.container}>
           <TouchableOpacity onPress={this.selectPhotoTapped.bind(this)}>
               <View
                 style={[styles.avatar, styles.avatarContainer, {marginBottom: 20}]}>
                 {this.state.avatarSource === null ? (
-                  <Text>Select a Photo</Text>
+                    <>
+                        <Text>Select a Photo</Text>
+                        <Text>ใส่รูปภาพ</Text>
+                    </>
                 ) : (
                   <Image style={styles.avatar} source={this.state.avatarSource} />
                 )}
@@ -153,9 +212,9 @@ export default class register extends Component {
 
           <View style={styles.inputContainer}>
             <TextInput style={styles.inputs}
-                placeholder="tell/เบอร์โทร"
+                placeholder="Phone/เบอร์โทร"
                 underlineColorAndroid='transparent'
-                onChangeText={(tell) => this.setState({tell})}/>
+                onChangeText={(mobilenumber) => this.setState({mobilenumber})}/>
           </View>
 
           <View style={styles.inputContainer}>
@@ -184,7 +243,6 @@ export default class register extends Component {
                 }>
                 <Picker.Item label="Male" value="Male" />
                 <Picker.Item label="Female" value="Female" />
-              
             </Picker>
           </View>
         
@@ -205,9 +263,10 @@ export default class register extends Component {
                 <Picker.Item label="61-70 ปี" value="61-70" />
                 <Picker.Item label="71-80 ปี" value="71-80" />
                 <Picker.Item label="91-100 ปี" value="91-100" />
-            </Picker>
+            </Picker>   
            
           </View>
+          
           <View style={styles.inputContainer}>
             <TextInput style={styles.inputs}
                 placeholder="Email/อีเมล์"
@@ -217,7 +276,7 @@ export default class register extends Component {
             <Image style={styles.inputIcon} source={{uri: 'https://img.icons8.com/flat_round/40/000000/secured-letter.png'}}/>
           </View>
           
-          <View style={styles.inputContainer}>
+          {/* <View style={styles.inputContainer}>
             <TextInput style={styles.inputs}
                 placeholder="Password/รหัส"
                 secureTextEntry={true}
@@ -233,19 +292,18 @@ export default class register extends Component {
                 underlineColorAndroid='transparent'
                 onChangeText={(confirmPassword) => this.setState({confirmPassword})}/>
             <Image style={styles.inputIcon} source={{uri: 'https://img.icons8.com/color/40/000000/password.png'}}/>
-          </View>
+          </View> */}
 
-          <TouchableOpacity style={[styles.buttonContainer, styles.loginButton]} onPress={() => this.handleSignUp(this.state)}>
-            <Text style={styles.btnText}>Register</Text>
+          <TouchableOpacity style={[styles.buttonContainer, styles.loginButton]} onPress={() => this.sendDirectSms()}>
+            <Text style={styles.btnText}>OK</Text>
           </TouchableOpacity>
        
       </View>
       </ScrollView>
-      // </PaperProvider>
-      
     );
   }
 }
+
 
 const resizeMode = 'center';
 
@@ -276,7 +334,6 @@ const styles = StyleSheet.create({
     marginBottom:20,
     flexDirection: 'row',
     alignItems:'center',
-
     shadowColor: "#808080",
     shadowOffset: {
       width: 0,
@@ -350,6 +407,10 @@ const styles = StyleSheet.create({
     shadowRadius: 12.35,
 
     elevation: 19,
+  },subname:{
+    fontSize:14,
+
+    color: '#1E90FF',
   },
   loginText: {
     color: 'white',
@@ -365,5 +426,69 @@ const styles = StyleSheet.create({
   btnText:{
     color:"white",
     fontWeight:'bold'
-  }
+  }, box: {
+    marginTop:10,
+    backgroundColor: 'white',
+    alignItems: 'center',
+    shadowColor: 'black',
+    shadowOpacity: .2,
+    shadowOffset: {
+      height:1,
+      width:-2
+    },
+    elevation:2,
+    paddingTop:10
+  },
+  profileImage:{
+    width:300,
+    height:300,
+    marginBottom:20,
+  },
+  name:{
+    fontSize:35,
+    marginBottom:20,
+    fontWeight: 'bold',
+    color: '#1E90FF',
+  },name:{
+    fontSize:25,
+    marginBottom:20,
+    fontWeight: 'bold',
+    color: '#1E90FF',
+  },subname:{
+    fontSize:14,
+
+    color: '#1E90FF',
+  },
+  buttonContainer211:{
+    justifyContent: 'center',
+    flexDirection:'row',
+    marginTop:20,
+  },
+  button: {
+    width:85,
+    height:50,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom:20,
+    // borderRadius:30,
+    margin:10,
+    shadowColor: 'black',
+    shadowOpacity: .8,
+    shadowOffset: {
+      height:2,
+      width:-2
+    },
+    elevation:4,
+  },
+  buttonMessage: {
+      fontSize: 16,
+    backgroundColor: "#00BFFF",
+  },
+  buttonLike: {
+    backgroundColor: "#228B22",
+  },
+  buttonCall: {
+    backgroundColor: "#40E0D0",
+  },
 }); 

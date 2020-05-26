@@ -97,15 +97,15 @@ export default class App extends React.Component {
     const Stack = createStackNavigator();
     return (
       <NavigationContainer>
-      <Stack.Navigator  initialRouteName={this.state.nav}>
-          <Stack.Screen name="register" component={register} />
+      <Stack.Navigator  initialRouteName={'Register/ลงทะเบียน'}>
+          <Stack.Screen name="Register/ลงทะเบียน" component={register} />
 
-          <Stack.Screen name="Craigslist" component={Craigslist} 
+          {/* <Stack.Screen name="Craigslist" component={Craigslist} 
             options={{
             headerTitle: props => <LogoTitle {...props} />,
             headerRight:props => <LogoSetiing {...props} />
           }}
-          />
+          /> */}
       </Stack.Navigator>
     </NavigationContainer>
     );

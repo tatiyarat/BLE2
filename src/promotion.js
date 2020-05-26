@@ -8,7 +8,9 @@ import {
   Alert,
   ScrollView,
   FlatList,
-  Dimensions
+  Dimensions,
+  Linking,
+  WebView 
 } from 'react-native';
 
 var {height, width} = Dimensions.get('window');
@@ -33,11 +35,12 @@ export default class Menu extends Component {
     };
   }
 
-  clickEventListener(item) {
-    Alert.alert(item.title)
+  clickEventListener() {
+    Linking.openURL('https://google.com');
   }
 
   render() {
+    const supportedURL = "https://google.com";
     return (
       <View style={styles.container}>
         <FlatList style={styles.list}
@@ -49,7 +52,7 @@ export default class Menu extends Component {
           }}
           renderItem={({item}) => {
             return (
-              <TouchableOpacity style={[styles.card, {backgroundColor:item.color}]} onPress={() => {this.clickEventListener(item)}}>
+              <TouchableOpacity style={[styles.card, {backgroundColor:item.color}]} onPress={() => {this.clickEventListener()}}>
                 <Image style={styles.cardImage} source={{uri:item.image}}/>
                 <Text style={styles.title}>{item.title}</Text>
               </TouchableOpacity>

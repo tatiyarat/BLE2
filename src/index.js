@@ -149,6 +149,29 @@ export default class App extends Component {
 
 
   }
+  rssi2dis (rssi,tx) {
+  
+  // var txPower = -69
+  // const mp = -69
+  if (rssi == 0) {
+    return -1.0; 
+  }
+  var  ratio = rssi*1.0/tx;
+  if (ratio < 1.0) {
+    return Math.pow(ratio,10);
+  }
+  else {
+    var accuracy =  (0.89976)*Math.pow(ratio,7.7095) + 0.111;    
+    return accuracy;
+  }
+  // var distance = 10^((mp-rssi)/10*2)
+  // // var distance =  Math.pow(10,((-59)-(rssi)));
+
+  //   return distance;
+ 
+  //  cal distance
+
+}
   renderItem(item) {
     const color = item.connected ? 'green' : '#fff';
 
@@ -159,11 +182,11 @@ export default class App extends Component {
                 true (
                   <> */}
         {/* <Text style={{ fontSize: 12, textAlign: 'center', color: '#333333', padding: 10 }}>{this.state.conut}</Text> */}
-        <Text style={{ fontSize: 12, textAlign: 'center', color: '#333333', padding: 10 }}>{item.name}</Text>
+        <Text style={{ fontSize: 12, textAlign: 'center', color: '#333333', padding: 10 }}>name:{item.name}</Text>
         <Text style={{ fontSize: 10, textAlign: 'center', color: '#333333', padding: 2 }}>RSSI: {item.rssi}</Text>
-        {/* <Text style={{ fontSize: 10, textAlign: 'center', color: '#333333', padding: 2 }}>txPowerLevel: {item.advertising.txPowerLevel}</Text> */}
-        <Text style={{ fontSize: 8, textAlign: 'center', color: '#333333', padding: 2, }}>{item.id}</Text>
-        {/* <Text style={{ fontSize: 8, textAlign: 'center', color: '#333333', padding: 2, paddingBottom: 20 }}>{this.rssi2dis(item.rssi,item.advertising.txPowerLevel)}</Text> */}
+        <Text style={{ fontSize: 10, textAlign: 'center', color: '#333333', padding: 2 }}>txPowerLevel: {item.advertising.txPowerLevel}</Text>
+        <Text style={{ fontSize: 8, textAlign: 'center', color: '#333333', padding: 2, }}>id:{item.id}</Text>
+        <Text style={{ fontSize: 8, textAlign: 'center', color: '#333333', padding: 2, paddingBottom: 20 }}>dis:{this.rssi2dis(item.rssi,item.advertising.txPowerLevel)}</Text>
 
         {/* </>
                 ) : (

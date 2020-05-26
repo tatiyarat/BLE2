@@ -10,8 +10,8 @@ import {
   FlatList,
   Dimensions,
   Linking,
-  WebView 
 } from 'react-native';
+import { WebView } from 'react-native-webview';
 
 var {height, width} = Dimensions.get('window');
 
@@ -40,26 +40,7 @@ export default class Menu extends Component {
   }
 
   render() {
-    const supportedURL = "https://google.com";
-    return (
-      <View style={styles.container}>
-        <FlatList style={styles.list}
-          contentContainerStyle={styles.listContainer}
-          data={this.state.data}
-          horizontal={false}
-          keyExtractor= {(item) => {
-            return item.id;
-          }}
-          renderItem={({item}) => {
-            return (
-              <TouchableOpacity style={[styles.card, {backgroundColor:item.color}]} onPress={() => {this.clickEventListener()}}>
-                <Image style={styles.cardImage} source={{uri:item.image}}/>
-                <Text style={styles.title}>{item.title}</Text>
-              </TouchableOpacity>
-            )
-          }}/>
-      </View>
-    );
+    return <WebView source={{ uri: 'http://203.150.55.44/welcome.html' }} />;
   }
 }
 

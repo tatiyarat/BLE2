@@ -1,7 +1,7 @@
 
 import * as React from 'react';
-import {  AsyncStorage,Button,Image,TouchableOpacity,Text,StatusBar,View} from 'react-native';
-// import AsyncStorage from '@react-native-community/async-storage';
+import { StyleSheet,Image,TouchableOpacity,Text,StatusBar,View,TouchableHighlight} from 'react-native';
+import AsyncStorage from '@react-native-community/async-storage';
 
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
@@ -10,60 +10,56 @@ import { createStackNavigator } from '@react-navigation/stack';
 // import SignUp from './src/';
 import register from './src/register';
 import Craigslist from './src/promotion'
-// import Craigslist from './promotion';
 
+function Title(props) {
+  return(
+   <>
+    <View style={{textAlign:"center", 
+                      flex:1,
+                      alignSelf: 'center'  }}>
+      <Text style={{  fontWeight: 'bold',}}>
+        {props.title}
+      </Text>
+      <Text style={{  fontWeight: 'bold',}}>
+        {props.rssi}
+      </Text>
+    </View>
+   </>
+  );
+}
 
-function LogoTitle() {
+function LogoTitle(props) {
   return (
-   
-     <View>
-        <View style={{flex: 1, flexDirection: 'row'}}>
-           
-            <View style={{ backgroundColor: 'powderblue'}} >
+     <View style={{marginLeft:5}}>
+        <View style={{ flexDirection: 'row'}}>
+            <View style={{ }} >
               <Image
-                style={{ width: 50, height: 50 }}
+                style={{ width: 50, height: 45,marginTop: 5,}}
                 source={require('./src/logo/logo-7.png')}
               />
             </View>
-
         </View>    
-        <View style={{flex: 1, flexDirection: 'row'}}>
-            <View style={{ backgroundColor: 'powderblue'}} >
-              <Text style={{ fontWeight:'bold',alignSelf:'center'}}>14535</Text>
-            </View>
-    
+        <View style={{ flexDirection: 'row',alignSelf:'center'}}>
+            <Text>{props.locationNo}</Text>
         </View>
       </View>
-   
-   // <View style={{marginBottom:5,marginLeft:5,flexDirection: 'row'}}>
-    //   <View style={{flexDirection: 'row'}}>
-
-    //   </View>
-    //  <Image
-    //   style={{ width: 50, height: 50 }}
-    //   source={require('./src/logo/logo-7.png')}
-    // />
-    // <Text style={{ fontWeight:'bold',alignSelf:'center'}}>14535</Text>
-    // </View>
   );
 }
-function LogoSetiing() {
+function LogoSetiing(props) {
   return (
-    <View>
-      <View>
+    <View  style={{textAlign:"center", 
+    flex:1,
+    alignSelf: 'center'  }}>
       <TouchableOpacity onPress>
-      <Image
-        style={{ width: 50, height: 50 ,margin: 10,}}
-        source={require('./src/logo/film.png')}
-      />
-    </TouchableOpacity>
-      </View>
-      <View >
-
+        <Image
+          style={styles.editcircle}
+          source={require('./src/logo/te.jpg')}
+        />
+      </TouchableOpacity>
+      <View>
+        <Text style={{ fontWeight:'bold',alignSelf:'center'}}>{props.rssi}</Text>
       </View>
     </View>
-   
-    
   );
 }
 export default class App extends React.Component {
@@ -73,87 +69,45 @@ export default class App extends React.Component {
     this.state = {
       isSignedIn:false,
       userToken: null,
-      nav:"register",
-      title: "สวัสดีค้าา"
+      nav:AsyncStorage.getItem('datakey')==null?"register":"Craigslist",
+      title: "สวัสดีค้าา",
+      rssi:"scanning",
+      locationNo:"?"
     }
+    this.handleTitleChange = this.handleTitleChange.bind(this)
   }
-  getData = async () => {
-    try {
-      const value = await AsyncStorage.getItem('token')
-      if(value !== null) {
-        this.setState({isSignedIn: true})
-        this.setState({nav:"Craigslist"})
-        console.log(this.state.isSignedIn)
-        // await  AsyncStorage.setItem('token','');
-        // const adfas = await AsyncStorage.getItem('token')
-        // console.log(adfas+'asfasf')
-      }
-    } catch(e) {
-      console.log(e)
-    }
+  handleTitleChange = (event) =>{
+    setState({title:event})
   }
- 
   componentDidMount(){
-
-    this.setState({isSignedIn: true})
-    this.setState({ nav : 'Craigslist' })
-    console.log(this.state.isSignedIn)
     console.log(this.state.nav)
-    
-    // this.getData();
-   
-    // console.log(this.state);
-    
-    // console.log(this.state.nav);
+
   }
-  // componentWillUnmount(){
-  //   this.setState({isSignedIn: false})
-  //   this.setState({ nav : 'register' })
-  //   console.log(this.state.isSignedIn)
-  //   console.log(this.state.nav)
-  // }
+  componentWillUnmount(){
+   
+    console.log("componentWillUnmount")
+  }
+
+
 
   render() {
-  
-    // onSignOut = async () =>{
-    //     try {
-    //       const value = await AsyncStorage.setItem('token','')
-    //       console.log(value+'logOuted')
-    //       this.setState({isSignedIn: false})
-    //       this.props.navigation.navigate('Home')
-    //       // , {
-    //       //   screen: 'Home',
-    //       // }
-    //     } catch (e) {
-    //       console.log(e)
-    //     }
-    // } 
-    
     const Stack = createStackNavigator();
     return (
       <NavigationContainer>
-        <StatusBar hidden={true} />
-      <Stack.Navigator  initialRouteName={'Register/ลงทะเบียน'} >
-          {/* <Stack.Screen name="Register/ลงทะเบียน" component={register} /> */}
+      <StatusBar hidden={true} />
+      <Stack.Navigator  initialRouteName={this.state.nav} >
+
+          <Stack.Screen name="Register" 
+          component={register}/>
 
           <Stack.Screen name="Craigslist" component={Craigslist} 
           
-            options={{
-                    headerTitleStyle: { 
-                      textAlign:"center", 
-                      flex:1 
-                  },
-                    headerTitleAlign: { alignSelf: 'center' },
-                    title: this.state.title,
-                      headerStyle: {
-                        fontWeight: 'bold',
-                        padding:20,
+            options={{headerStyle: {
                         height:100,
-                        // backgroundColor: '#f4511e',
                       },
-                    headerLeft: props => <LogoTitle {...props} />,
-                
-                    headerRight:props => <LogoSetiing {...props} />
+                    headerTitle: props => <Title  title={this.state.title} />,
+                    headerLeft: props => <LogoTitle  locationNo={this.state.locationNo}/>,
+                    headerRight: props => <LogoSetiing  rssi={this.state.rssi}/>
                   }}
           />
       </Stack.Navigator>
@@ -162,3 +116,14 @@ export default class App extends React.Component {
 
   }
 }
+const styles = StyleSheet.create({
+  editcircle: {
+    width: 50, 
+    height: 50,
+    margin: 10,
+    borderRadius: 50
+  },
+  row: {
+    margin: 10
+  },
+});

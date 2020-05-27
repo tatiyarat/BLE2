@@ -4,15 +4,16 @@ import {
   StyleSheet,
   Text,
   View,
-  TouchableHighlight,
   Image,
   Alert,
   ScrollView,
   TextInput,
   PermissionsAndroid,
-  NativeModules
+  NativeModules,
+  TouchableOpacity
 } from 'react-native';
-import SendSMS from 'react-native-sms';
+import AsyncStorage from '@react-native-community/async-storage';
+
 var DirectSms = NativeModules.DirectSms;
 
 export default class ProfileCardView extends Component {
@@ -20,20 +21,51 @@ export default class ProfileCardView extends Component {
   constructor(props) {
     super(props);
     this.state={
-        mobilenumber:'0867902524',
         SMS4ditgit:'',
         code:'',
         trackerID:'',
     }
-        
+    this.buttonPress = this.buttonPress.bind(this);
+    this.fails = this.fails.bind(this);
   }
+
+  fails = () => {
+    console.log("fails");
+    this.props.Onfails()
+  }
+
   Random4ditgit = () => {
     let  generatedPassword = (Math.floor(Math.random() * (9999 - 1000 + 1)) + 1000).toString();
       this.setState({SMS4ditgit:generatedPassword})
     console.log("MyApp", "Generated Password : " + generatedPassword);
-  
-    }
+  }
+  buttonPress () {
+    this.storeData()
+    console.log('called');
+    this.props.nav.navigate('Craigslist');
+  }
 
+  storeData = async () => {
+    try {
+      const data = {
+        firstname: this.props.firstname,
+        lastname: this.props.lastname,
+        gender: this.props.gender,
+        old: this.props.old,
+        tell: this.props.phone,
+        email: this.props.email,
+        trackerID: this.state.trackerID,
+        avatar:this.props.avatar,
+    }
+   
+      const jsonValue = JSON.stringify(data)
+      await AsyncStorage.setItem('datakey', jsonValue)
+      
+    } catch (e) {
+      // saving error
+      console.log('saving error');
+    }
+  }
   sendDirectSms = async () => {
     try {
         const granted = await PermissionsAndroid.request(
@@ -43,14 +75,17 @@ export default class ProfileCardView extends Component {
                 message:
                 'Application needs access to your inbox ' +
                 'so you can send messages in background.',
-                buttonNeutral: 'Ask Me Later',
                 buttonNegative: 'Cancel',
                 buttonPositive: 'OK',
             },
         );
         if (granted === PermissionsAndroid.RESULTS.GRANTED) {
             this.Random4ditgit()
-            DirectSms.sendDirectSms(this.state.mobilenumber, this.state.SMS4ditgit);
+            if(this.props.phone){
+              DirectSms.sendDirectSms(this.props.phone, this.state.SMS4ditgit);
+            }else{
+              Alert.alert("Error", "ไม่มีเบอร์");
+            }
         } else {
             console.log('SMS permission denied');
         }
@@ -59,39 +94,36 @@ export default class ProfileCardView extends Component {
     }
 }
 convermobile2trackerID(){
-    let str = this.state.mobilenumber;
-     str = str.replace(/0/g, "A");
-     str = str.replace(/1/g, "B");
-     str = str.replace(/2/g, "C");
-     str = str.replace(/3/g, "D");
-     str = str.replace(/4/g, "E");
-     str = str.replace(/5/g, "F");
-     str = str.replace(/6/g, "G");
-     str = str.replace(/7/g, "H");
-     str = str.replace(/8/g, "I");
-     str = str.replace(/9/g, "J");
-     this.state.trackerID = str;
-    // this.setState({trackerID:str});
+    let str1 = this.state.mobilenumber+this.state.SMS4ditgit;
+    str1 = str1.replace(/0/g, "A");
+    str1 = str1.replace(/1/g, "B");
+    str1 = str1.replace(/2/g, "C");
+    str1 = str1.replace(/3/g, "D");
+    str1 = str1.replace(/4/g, "E");
+    str1 = str1.replace(/5/g, "F");
+    str1 = str1.replace(/6/g, "G");
+    str1 = str1.replace(/7/g, "H");
+    str1 = str1.replace(/8/g, "I");
+    str1 = str1.replace(/9/g, "J");
+    // this.state.trackerID = str1;
+    this.setState({trackerID:str1});
     
-    console.log(this.state.trackerID );
+    console.log(this.state.trackerID+"trackerID");
 }
 
-verifypassword(){
-    if(this.state.code != null || this.state.code != ''){
-        if(this.state.SMS4ditgit === this.state.code){
-            this.convermobile2trackerID();
-            
-            Alert.alert("รหัสถูกต้อง: "+this.state.trackerID, "ถูกต้องนะครับบบบบบ ",[{text: "OK"}]);
-            
-        }else{
-            Alert.alert("รหัสผิดพลาด", "รหัสไม่ถูกต้องน่ะครับบบบ");
-        }
+verifypassword () {
+  if(this.state.code !== null && this.state.code !== ''){
+    if(this.state.SMS4ditgit === this.state.code){
+        this.convermobile2trackerID();
+        Alert.alert("รหัสถูกต้อง: "+this.state.trackerID, "ถูกต้องนะครับบบบบบ ",[{text: "OK", onPress: () =>this.buttonPress()}]);
     }else{
-        Alert.alert("Error", "โปรดกรอกรหัสยืนยันตัวตน");
+        Alert.alert("รหัสผิดพลาด", "รหัสไม่ถูกต้องน่ะครับบบบ");
+    }
+  }else{
+        Alert.alert("ผิดพลาด", "โปรดกรอกรหัสยืนยันตัวตน");
     }
 }
 
-  
   
   render() {
     return (
@@ -99,16 +131,23 @@ verifypassword(){
         <View style={{ padding:20,flex: 1,}}>
 
             <View style={styles.box}>
-                <Image style={styles.profileImage} source={{uri: 'https://bootdey.com/img/Content/avatar/avatar6.png'}}/>
-                <Text style={styles.name}>คุณ สุพิน วรรณา</Text>
+                  {this.props.avatar === null ? (
+                        <>
+                      <Image style={styles.profileImage} source={{uri: 'https://bootdey.com/img/Content/avatar/avatar6.png'}}/>
+                        </>
+                    ) : (
+                      <Image style={styles.profileImage} source={this.props.avatar} />
+                  )}
+                
+                <Text style={styles.name}>{this.props.fname}{this.props.lname}</Text>
                 <Text style={styles.subname}>จะได้รับรหัสยืนยันผ่านระบบ SMS </Text>
-                <Text style={{ fontSize:14,color:'#1E90FF',marginBottom:20,}}>จากเบอร์โทรศัพท์  0867902524</Text>
+                <Text style={{ fontSize:14,color:'#1E90FF',marginBottom:20,}}>จากเบอร์โทรศัพท์  {this.props.phone}</Text>
             </View>
 
             <View style={styles.buttonContainer}>
                 <View style={styles.inputContainer}>
                     <TextInput style={styles.inputs}
-                        placeholder={this.state.SMS4ditgit}
+                        placeholder="XXXX"
                         underlineColorAndroid='transparent'
                         onChangeText={(code) => this.setState({code})}
                        />
@@ -116,13 +155,23 @@ verifypassword(){
             </View>
 
             <View style={styles.buttonContainer}>
-                <TouchableHighlight style={[styles.button, styles.buttonMessage]} onPress={() => this.sendDirectSms()}>
+                <TouchableOpacity style={[styles.button, styles.buttonMessage]} 
+                onPress={() => this.sendDirectSms()}
+                >
                     <Text>รับรหัสยืนยัน</Text>
-                </TouchableHighlight>
+                </TouchableOpacity>
 
-                <TouchableHighlight style={[styles.button, styles.buttonCall]} onPress={() => this.verifypassword()}>
+                <TouchableOpacity style={[styles.button, styles.buttonback]} 
+                onPress={()=>this.fails()}
+                >
+                    <Text>ย้อนกลับ</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity style={[styles.button, styles.buttonCall]} 
+                onPress={()=>this.verifypassword()}
+                >
                     <Text>ยืนยันตัวตน</Text>
-                </TouchableHighlight>
+                </TouchableOpacity>
         </View>
       </View>
       </ScrollView>
@@ -154,6 +203,7 @@ const styles = StyleSheet.create({
     width:200,
     height:200,
     marginBottom:20,
+    marginTop:20,
   },
   name:{
     fontSize:25,
@@ -218,6 +268,8 @@ const styles = StyleSheet.create({
   },
   buttonCall: {
     backgroundColor: "#40E0D0",
+  },buttonback: {
+    backgroundColor: "#F0FB82",
   },
   icon: {
     width:35,

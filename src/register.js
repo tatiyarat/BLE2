@@ -8,17 +8,17 @@ import {
   TouchableOpacity,
   Image,
   Alert,
-  AsyncStorage,
   PixelRatio,
   NativeModules,
   PermissionsAndroid
 } from 'react-native';
 import ImagePicker from 'react-native-image-picker';
-// import { RadioButton} from 'react-native-paper';
-// import { Dropdown } from 'react-native-material-dropdown';
+import AsyncStorage from '@react-native-community/async-storage';
 import {Picker} from '@react-native-community/picker';
-import SendSMS from 'react-native-sms';
 var DirectSms = NativeModules.DirectSms;
+
+
+import ProfileCardView from './compoment/verfiyphone'
 export default class register extends Component {
 
   constructor(props) {
@@ -31,165 +31,34 @@ export default class register extends Component {
       old:'',
       gender:'Male',
       email: '',
-      password: '',
-      confirmPassword: '',
       avatarSource: null,
       mobilenumber:'',
-      code:'',
-      SMS4ditgit:'',
-      trackerID:'',
+      showImage:true,
     }
+    this.handleShowImage = this.handleShowImage.bind(this)
   }
-  Random4ditgit = () => {
-    let  generatedPassword = (Math.floor(Math.random() * (9999 - 1000 + 1)) + 1000).toString()  ;
-      this.setState({SMS4ditgit:generatedPassword})
-    console.log("MyApp", "Generated Password : " + generatedPassword);
-  
-    }
-
- vertiy() {
-    return (
-        <ScrollView style={styles.scrollContainer}>
-        <View style={{ padding:20,flex: 1,}}>
-            
-            <View style={styles.box}>
-                <Image style={styles.profileImage} source={{uri: 'https://bootdey.com/img/Content/avatar/avatar6.png'}}/>
-                <Text style={styles.name}>คุณ สุพิน วรรณา</Text>
-                <Text style={styles.subname}>จะได้รับรหัสยืนยัน SMS </Text>
-                <Text style={{ fontSize:14,color:'#1E90FF',marginBottom:20,}}>จากเบอร์โทรศัพท์  0867902524</Text>
-            </View>
-
-            <View style={styles.buttonContainer211}>
-                <View style={styles.inputContainer}>
-                    <TextInput style={styles.inputs}
-                        placeholder="XXXX"
-                        underlineColorAndroid='transparent'
-                        onChangeText={(code) => this.setState({code})}/>
-                </View>
-            </View>
-
-            <View style={styles.buttonContainer211}>
-                <TouchableHighlight style={[styles.button, styles.buttonMessage]} onPress={() => this.sendDirectSms()}>
-                    <Text>รับรหัสยืนยัน</Text>
-                </TouchableHighlight>
-
-                <TouchableHighlight style={[styles.button, styles.buttonCall]} onPress={() => this.verifypassword()}>
-                    <Text>ยืนยันตัวตน</Text>
-                </TouchableHighlight>
-        </View>
-      </View>
-      </ScrollView>
-    );
+  handleShowImage = () =>{
+    this.setState({showImage: true})
+    console.log(this.state.showImage);
   }
-
-  convermobile2trackerID(){
-    let str = this.state.mobilenumber;
-     str = str.replace(/0/g, "A");
-     str = str.replace(/1/g, "B");
-     str = str.replace(/2/g, "C");
-     str = str.replace(/3/g, "D");
-     str = str.replace(/4/g, "E");
-     str = str.replace(/5/g, "F");
-     str = str.replace(/6/g, "G");
-     str = str.replace(/7/g, "H");
-     str = str.replace(/8/g, "I");
-     str = str.replace(/9/g, "J");
-     this.state.trackerID = str;
-    // this.setState({trackerID:str});
-    
-    console.log(this.state.trackerID );
-}
-
-  verifypassword(){
-    if(this.state.code != null || this.state.code != ''){
-        if(this.state.SMS4ditgit === this.state.code){
-            this.convermobile2trackerID();
-            
-            Alert.alert("รหัสถูกต้อง: "+this.state.trackerID, "ถูกต้องนะครับบบบบบ ",[{text: "OK"}]);
-            
-        }else{
-            Alert.alert("รหัสผิดพลาด", "รหัสไม่ถูกต้องน่ะครับบบบ");
-        }
-    }else{
-        Alert.alert("Error", "โปรดกรอกรหัสยืนยันตัวตน");
-    }
-}
-
-//   async function to call the Java native method
-    sendDirectSms = async () => {
-        try {
-            const granted = await PermissionsAndroid.request(
-            PermissionsAndroid.PERMISSIONS.SEND_SMS,
-                {
-                    title: 'YourProject App Sms Permission',
-                    message:
-                    'YourProject App needs access to your inbox ' +
-                    'so you can send messages in background.',
-                    buttonNeutral: 'Ask Me Later',
-                    buttonNegative: 'Cancel',
-                    buttonPositive: 'OK',
-                },
-            );
-            if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-                this.Random4ditgit()
-                DirectSms.sendDirectSms(this.state.mobilenumber, this.state.SMS4ditgit);
-            } else {
-                console.log('SMS permission denied');
-            }
-        } catch (err) {
-            console.warn(err);
-        }
-    }
-
-  
 
   onClickListener = () => {
     this.props.navigation.navigate('Home');
   }
-  handleSignUp = async (value) => {
-
-    // Make sure passwords match
-        // console.log('afad');
-
-    // console.log(value.firstname)
-    if (value.password === value.confirmPassword) {
-        const register = {
-          // username: 'namtest',
-          firstname: value.firstname,
-          lastname: value.lastname,
-          gender: value.gender,
-          old: value.old,
-          tell: value.mobilenumber,
-          email: value.email,
-        //   passwordConf:value.confirmPassword,
-        //   password:value.password,
-  
-      }
-       const requestOptions = {
-          method: 'POST',
-          headers: { 
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
-           },
-          body: JSON.stringify(register)
-      };
-    
-      try {
-        const response = await fetch('http://203.150.55.44:3001/register',requestOptions)
-        // console.log(response.json())
-        const data = await response.json()
-        if (data.statusCode == 200) {
-            this.sendDirectSms()
-          Alert.alert("success", "Register success",[{text: "OK", onPress: () => this.onClickListener()}]);
-        }else{
-          Alert.alert("ERROR",data.message)
-        }        
-      
-      } catch (error) {
-        Alert.alert("Error", "Wrong email or password ");
-      }
-    } else {
-      alert('Passwords do not match.');
+  handleSignUp () {
+    // console.log(this.state);
+    if(this.state.firstname === null || this.state.firstname == ""){
+      Alert.alert("ผิดพลาด", "โปรดกรอก ชื่อ");
+    }else if(this.state.lastname === null || this.state.lastname == ''){
+      Alert.alert("ผิดพลาด", "โปรดกรอก นามสกุล");
+    }else if(this.state.email === null || this.state.email == ''){
+      Alert.alert("ผิดพลาด", "โปรดกรอก อีเมล์");
+    }else if(this.state.avatarSource === null || this.state.avatarSource == ''){
+      Alert.alert("ผิดพลาด", "โปรดกรอกใส่รูปภาพ");
+    }else if(this.state.mobilenumber === null || this.state.mobilenumber == ''){
+      Alert.alert("ผิดพลาด", "โปรดกรอก เบอร์มือถือ");
+    }else{
+      this.setState({showImage:false})
     }
   }
 
@@ -204,7 +73,7 @@ export default class register extends Component {
     };
 
     ImagePicker.showImagePicker(options, response => {
-      console.log('Response = ', response);
+      // console.log('Response = ', response);
 
       if (response.didCancel) {
         console.log('User cancelled photo picker');
@@ -225,114 +94,115 @@ export default class register extends Component {
     });
   }
 
+  
   render() {
+    const showImage = this.state.showImage;
     return (
-      <ScrollView>
-      <View style={styles.container}>
-          <TouchableOpacity onPress={this.selectPhotoTapped.bind(this)}>
-              <View
-                style={[styles.avatar, styles.avatarContainer, {marginBottom: 20}]}>
-                {this.state.avatarSource === null ? (
-                    <>
-                        <Text>Select a Photo</Text>
-                        <Text>ใส่รูปภาพ</Text>
-                    </>
-                ) : (
-                  <Image style={styles.avatar} source={this.state.avatarSource} />
-                )}
+      <>
+      {showImage 
+        ? <ScrollView>
+          <View style={styles.container}>
+              <TouchableOpacity onPress={this.selectPhotoTapped.bind(this)}>
+                  <View
+                    style={[styles.avatar, styles.avatarContainer, {marginBottom: 20}]}>
+                    {this.state.avatarSource === null ? (
+                        <>
+                            <Text>Select a Photo</Text>
+                            <Text>ใส่รูปภาพ</Text>
+                        </>
+                    ) : (
+                      <Image style={styles.avatar} source={this.state.avatarSource} />
+                    )}
+                  </View>
+              </TouchableOpacity>
+
+              <View style={styles.inputContainer}>
+                <TextInput style={styles.inputs}
+                    placeholder="Phone/เบอร์โทร"
+                    underlineColorAndroid='transparent'
+                    onChangeText={(mobilenumber) => this.setState({mobilenumber})}/>
               </View>
-          </TouchableOpacity>
 
-          <View style={styles.inputContainer}>
-            <TextInput style={styles.inputs}
-                placeholder="Phone/เบอร์โทร"
-                underlineColorAndroid='transparent'
-                onChangeText={(mobilenumber) => this.setState({mobilenumber})}/>
-          </View>
+              <View style={styles.inputContainer}>
+                <TextInput style={styles.inputs}
+                    placeholder="Firstname/ชื่อ"
+                    underlineColorAndroid='transparent'
+                    onChangeText={(firstname) => this.setState({firstname})}/>
+                <Image style={styles.inputIcon} source={{uri: 'https://img.icons8.com/color/40/000000/circled-user-male-skin-type-3.png'}}/>
+              </View>
+              
+              <View style={styles.inputContainer}>
+                <TextInput style={styles.inputs}
+                    placeholder="Lastname/นามสกุล"
+                    underlineColorAndroid='transparent'
+                    onChangeText={(lastname) => this.setState({lastname})}/>
+                <Image style={styles.inputIcon} source={{uri: 'https://img.icons8.com/color/40/000000/circled-user-male-skin-type-3.png'}}/>
+              </View>
 
-          <View style={styles.inputContainer}>
-            <TextInput style={styles.inputs}
-                placeholder="Firstname/ชื่อ"
-                underlineColorAndroid='transparent'
-                onChangeText={(firstname) => this.setState({firstname})}/>
-            <Image style={styles.inputIcon} source={{uri: 'https://img.icons8.com/color/40/000000/circled-user-male-skin-type-3.png'}}/>
-          </View>
+              <View  style={styles.inputContainer}>
+                <Text style={styles.inputspiker}>Gender/เพศ</Text>
+                <Picker
+                    selectedValue={this.state.gender}
+                    style={{height: 50, width: 130}}
+                    onValueChange={(itemValue, itemIndex) =>
+                        this.setState({gender: itemValue})
+                    }>
+                    <Picker.Item label="Male/ชาย" value="Male" />
+                    <Picker.Item label="Female/หญิง" value="Female" />
+                </Picker>
+              </View>
+            
+              <View style={styles.inputContainer}>
+                  <Text style={styles.inputspiker}>Old/ช่วงอายุ</Text>
+                <Picker
+                    selectedValue={this.state.old}
+                    style={{height: 50, width: 150}}
+                    onValueChange={(itemValue, itemIndex) =>
+                        this.setState({old: itemValue})
+                    }>
+                    <Picker.Item label="0-10 ปี/Old" value="0-10" />
+                    <Picker.Item label="11-20 ปี/Old" value="11-20" />
+                    <Picker.Item label="21-30 ปี/Old" value="21-30" />
+                    <Picker.Item label="31-40 ปี/Old" value="31-40" />
+                    <Picker.Item label="41-50 ปี/Old" value="41-50" />
+                    <Picker.Item label="51-60 ปี/Old" value="51-60" />
+                    <Picker.Item label="61-70 ปี/Old" value="61-70" />
+                    <Picker.Item label="71-80 ปี/Old" value="71-80" />
+                    <Picker.Item label="91-100 ปี/Old" value="91-100" />
+                </Picker>   
+              
+              </View>
+              
+              <View style={styles.inputContainer}>
+                <TextInput style={styles.inputs}
+                    placeholder="Email/อีเมล์"
+                    keyboardType="email-address"
+                    underlineColorAndroid='transparent'
+                    onChangeText={(email) => this.setState({email})}/>
+                <Image style={styles.inputIcon} source={{uri: 'https://img.icons8.com/flat_round/40/000000/secured-letter.png'}}/>
+              </View>
+
+              <TouchableOpacity style={[styles.buttonContainer, styles.loginButton]} onPress={() => this.handleSignUp()}>
+                <Text style={styles.btnText}>OK</Text>
+              </TouchableOpacity>
           
-          <View style={styles.inputContainer}>
-            <TextInput style={styles.inputs}
-                placeholder="Lastname/นามสกุล"
-                underlineColorAndroid='transparent'
-                onChangeText={(lastname) => this.setState({lastname})}/>
-            <Image style={styles.inputIcon} source={{uri: 'https://img.icons8.com/color/40/000000/circled-user-male-skin-type-3.png'}}/>
           </View>
-
-          <View  style={styles.inputContainer}>
-            <Text style={styles.inputs}>Gender/เพศ</Text>
-            <Picker
-                selectedValue={this.state.gender}
-                style={{height: 50, width: 100}}
-                onValueChange={(itemValue, itemIndex) =>
-                    this.setState({gender: itemValue})
-                }>
-                <Picker.Item label="Male" value="Male" />
-                <Picker.Item label="Female" value="Female" />
-            </Picker>
-          </View>
-        
-          <View style={styles.inputContainer}>
-              <Text style={styles.inputs}>Old/ช่วงอายุ</Text>
-            <Picker
-                selectedValue={this.state.old}
-                style={{height: 50, width: 100}}
-                onValueChange={(itemValue, itemIndex) =>
-                    this.setState({old: itemValue})
-                }>
-                <Picker.Item label="0-10 ปี" value="0-10" />
-                <Picker.Item label="11-20 ปี" value="11-20" />
-                <Picker.Item label="21-30 ปี" value="21-30" />
-                <Picker.Item label="31-40 ปี" value="31-40" />
-                <Picker.Item label="41-50 ปี" value="41-50" />
-                <Picker.Item label="51-60 ปี" value="51-60" />
-                <Picker.Item label="61-70 ปี" value="61-70" />
-                <Picker.Item label="71-80 ปี" value="71-80" />
-                <Picker.Item label="91-100 ปี" value="91-100" />
-            </Picker>   
-           
-          </View>
-          
-          <View style={styles.inputContainer}>
-            <TextInput style={styles.inputs}
-                placeholder="Email/อีเมล์"
-                keyboardType="email-address"
-                underlineColorAndroid='transparent'
-                onChangeText={(email) => this.setState({email})}/>
-            <Image style={styles.inputIcon} source={{uri: 'https://img.icons8.com/flat_round/40/000000/secured-letter.png'}}/>
-          </View>
-          
-          {/* <View style={styles.inputContainer}>
-            <TextInput style={styles.inputs}
-                placeholder="Password/รหัส"
-                secureTextEntry={true}
-                underlineColorAndroid='transparent'
-                onChangeText={(password) => this.setState({password})}/>
-            <Image style={styles.inputIcon} source={{uri: 'https://img.icons8.com/color/40/000000/password.png'}}/>
-          </View>
-
-          <View style={styles.inputContainer}>
-            <TextInput style={styles.inputs}
-                placeholder="ConfirmPassword/ยืนยันรหัสผ่าน"
-                secureTextEntry={true}
-                underlineColorAndroid='transparent'
-                onChangeText={(confirmPassword) => this.setState({confirmPassword})}/>
-            <Image style={styles.inputIcon} source={{uri: 'https://img.icons8.com/color/40/000000/password.png'}}/>
-          </View> */}
-
-          <TouchableOpacity style={[styles.buttonContainer, styles.loginButton]} onPress={() => this.sendDirectSms()}>
-            <Text style={styles.btnText}>OK</Text>
-          </TouchableOpacity>
-       
-      </View>
-      </ScrollView>
+        </ScrollView>
+        :
+          <ProfileCardView 
+          fname={this.state.firstname}
+          lname={this.state.lastname}
+          phone={this.state.mobilenumber}
+          gender={this.state.gender}
+          email={this.state.email}
+          avatar={this.state.avatarSource}
+          mobilenumber={this.state.mobilenumber}
+          old={this.state.old}
+          Onfails={()=>this.handleShowImage()}
+          nav={this.props.navigation}
+          />
+      }
+     </>
     );
   }
 }
@@ -396,6 +266,10 @@ const styles = StyleSheet.create({
     shadowRadius: 3.84,
 
     elevation: 5,
+  },inputspiker:{
+    color:'#C3C6C8',
+    flex:1,
+    marginLeft:16,
   },
   inputs:{
     height:45,
@@ -440,10 +314,6 @@ const styles = StyleSheet.create({
     shadowRadius: 12.35,
 
     elevation: 19,
-  },subname:{
-    fontSize:14,
-
-    color: '#1E90FF',
   },
   loginText: {
     color: 'white',

@@ -131,7 +131,7 @@ export default class App extends Component {
 
   startScan() {
     if (!this.state.scanning) {
-      BleManager.scan([], 300, true).then(() => {
+      BleManager.scan([], 5, true).then(() => {
         console.log('Scanning...');
         this.setState({ scanning: true });
       });

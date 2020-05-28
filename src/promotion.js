@@ -20,13 +20,16 @@ export default class Menu extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      
+      uri : props.uri
     };
   }
 
-
+  componentDidMount() {
+    // console.log(this.state.uri);
+    
+  }
   render() {
-    return <WebView source={{ uri: 'http://203.150.55.44/welcome.html' }} />;
+    return <WebView source={{ uri: 'http://203.150.55.44/'+this.state.uri+'.html' }} />;
   }
 }
 

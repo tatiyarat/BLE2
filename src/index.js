@@ -131,7 +131,7 @@ export default class App extends Component {
 
   startScan() {
     if (!this.state.scanning) {
-      BleManager.scan([], 50, true).then(() => {
+      BleManager.scan([], 300, true).then(() => {
         console.log('Scanning...');
         this.setState({ scanning: true });
       });
@@ -140,15 +140,22 @@ export default class App extends Component {
 
   handleDiscoverPeripheral(peripheral) {
     var peripherals = this.state.peripherals;
-    // console.log('Got ble peripheral', peripheral);
-    if (peripheral.name != null) {
-      this.state.conut += +1;
-      peripherals.set(peripheral.id, peripheral);
-      this.setState({ peripherals });
-    }
-
-
+      if (typeof peripheral.name == "string" && peripheral.name.indexOf("Holy")>=0 ){
+        if (peripheral.rssi >= -70) {
+          this.state.conut += +1;
+          peripherals.set(peripheral.id, peripheral);
+          this.setState({ peripherals });
+        }
+        
+        
+      }
+    // if (peripheral.name != null) {
+    //   this.state.conut += +1;
+    //   peripherals.set(peripheral.id, peripheral);
+    //   this.setState({ peripherals });
+    // }
   }
+
   rssi2dis (rssi,tx) {
   
   // var txPower = -69

@@ -7,43 +7,12 @@ import { StyleSheet,Image,TouchableOpacity,Text,StatusBar,View,Dimensions,Native
 import AsyncStorage from '@react-native-community/async-storage';
 import { NavigationContainer,useNavigation } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
-import { BluetoothStatus } from 'react-native-bluetooth-status';
-import BleManager from 'react-native-ble-manager';
-import { WebView } from 'react-native-webview';
+
 
 // import SignUp from './src/';
 import register from './src/register';
 import Menu from './src/promotion'
 
-const window = Dimensions.get('window');
-
-// const BleManagerModule = NativeModules.BleManager;
-// const bleManagerEmitter = new NativeEventEmitter(BleManagerModule);
-
-function Title(props) {
-  return(
-   <>
-    <View style={{
-        textAlign:"center", 
-        flex:1,
-        alignSelf: 'center' 
-         }}>
-      <Text style={{  fontWeight: 'bold',}}>
-        {props.title}
-      </Text>
-      <Text style={{  fontWeight: 'bold',}}>
-        {props.rssi}
-      </Text>
-    </View>
-   </>
-  );
-}
-// function Menu() {
-//   return(
-//     <WebView source={{ uri: 'http:/192.168.101.201/cur_Location/index.html' }} />
-    
-//   ) 
-// }
 
 
 export default class App extends React.Component {
@@ -85,33 +54,20 @@ export default class App extends React.Component {
     // this.handleAppStateChange = this.handleAppStateChange.bind(this);
 
   }
-  static navigationOptions = {
-    title: "Sign In",
-    header: null,
-    mode: "modal",
-    headerMode: "none"
-  };
+
  
 
 
   componentDidMount(){
     
     
-    // AppState.addEventListener('change', this.handleAppStateChange);
  
   }
 
   componentWillUnmount(){
    
   }
-//  handleAppStateChange(nextAppState) {
-//     if (this.state.appState.match(/inactive|background/) && nextAppState === 'active') {
-//       console.log('App has come to the foreground!')
-//       BleManager.getConnectedPeripherals([]).then((peripheralsArray) => {
-//         console.log('Connected peripherals: ' + peripheralsArray.length);
-//       });
-//     }
-//   }
+
   render() {
     
     const Stack = createStackNavigator();

@@ -15,6 +15,7 @@ import {
   NativeModules,NativeEventEmitter,Platform,PermissionsAndroid
 } from 'react-native';
 import { WebView } from 'react-native-webview';
+import AsyncStorage from '@react-native-community/async-storage';
 
 var {height, width} = Dimensions.get('window');
 
@@ -30,7 +31,6 @@ export default class  Menu extends Component {
     this.props = props;
     this.state = {
       serverAddr: "192.168.101.201",
-
       title: "สวัสดีค้าา",
 
       def_Location: "000",
@@ -63,10 +63,32 @@ export default class  Menu extends Component {
     this.handleUpdateValueForCharacteristic = this.handleUpdateValueForCharacteristic.bind(this);
     this.handleDisconnectedPeripheral = this.handleDisconnectedPeripheral.bind(this);
     // this.handleAppStateChange = this.handleAppStateChange.bind(this);
+    this.getUser = this.getUser.bind(this)
   } 
-  
+  // getUser = async () => {
+  //   try {
+  //     const value = await AsyncStorage.getItem('datakey')
+  //     return value != null ? JSON.parse(value) : null
+  //   } catch(e) {
+  //     // error reading value
+  //   }
+  // }
+
+  getUser = async () => {
+    try {
+      const value = await AsyncStorage.getItem('datakey');
+      if (value !== null) {
+        // We have data!!
+        return value != null ? JSON.parse(value) : null
+        console.log(value);
+      }
+    } catch (error) {
+      return null;
+      // Error retrieving data
+    }
+  };
   componentDidMount(){
-    console.log("MOUNT");
+    console.log("User ",this.getUser());
     
     this.handlerDiscover = bleManagerEmitter.addListener('BleManagerDiscoverPeripheral', this.handleDiscoverPeripheral);
     this.handlerStop = bleManagerEmitter.addListener('BleManagerStopScan', this.handleStopScan);
@@ -101,7 +123,7 @@ export default class  Menu extends Component {
     this.handlerUpdate.remove();
   }
 
-
+  
   startScan() {
     if(this.state.cur_Location == '') {
       this.showDefaultURL()
@@ -219,6 +241,39 @@ export default class  Menu extends Component {
     }
   }
 
+  fetchdata = async () => {
+    try {
+      const data = {
+        trackerID: this.props.firstname,
+        shop: this.props.lastname,
+        gender: this.props.gender,
+        date: this.props.old,
+
+    }
+   
+    fetch('https://mywebsite.com/endpoint/', {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        firstParam: 'yourValue',
+        secondParam: 'yourOtherValue'
+      })
+    }).then((response) => response.json())
+    .then((responseJson) => {
+      return responseJson;
+    })
+    .catch((error) => {
+      console.error(error);
+    });
+      
+    } catch (e) {
+      // saving error
+      console.log('saving error');
+    }
+  }
   render() {
   // console.log('http://192.168.101.201/'+this.state.cur_Location+'/index.html')
     
@@ -230,7 +285,7 @@ export default class  Menu extends Component {
               <View>
                 <Image
                   style={{ width: 50, height: 45,marginTop: 5,}}
-                  source={require('./logo/logo-7.png')}
+                  source={{uri:'http://192.168.101.201/'+this.state.cur_Location+'/logo/default.png'}}
                 />
               </View>
           </View>    
@@ -240,13 +295,18 @@ export default class  Menu extends Component {
         </View>
 
         <View style={{textAlign:"center", flex:2,alignItems: 'center'}}>
-            <Text style={{  fontWeight: 'bold',}}>
+          {this.state.cur_Location != '000'?(
+            <>
+              <Text style={{  fontWeight: 'bold',alignSelf:'center'}}>
               สวัสดีค้าา
             </Text>
-
-            <Text style={{  fontWeight: 'bold',}}>
-              rssi
-            </Text>
+            </>
+          ):(
+            <>
+           
+            </>
+          )}
+          
         </View>
 
         <View  style={{textAlign:"center", flex:1,alignItems: 'center'}}>
@@ -273,7 +333,7 @@ export default class  Menu extends Component {
     <Text> Message:{this.state.cur_Message} </Text>
     <Text> Rssi:{this.state.cur_RSSI} </Text>
     <Text> Order:  {this.state.cur_Order}</Text>
-    <WebView source={{ uri: 'http://192.168.101.201/'+this.state.cur_Location+'/logo/default.png' }} />
+    <WebView source={{ uri: 'http://192.168.101.201/'+this.state.cur_Location}} />
 
     </>
     )

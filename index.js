@@ -14,15 +14,15 @@ import React, { Component } from 'react';
 import 'react-native-gesture-handler';
 // import reducer from './src/reducer'
 // import { createStore } from 'redux';
-import { Provider } from 'react-redux';
-import store from './store'
+// import { Provider } from 'react-redux';
+// import store from './store'
 // const store = createStore(reducer);
 
 export default function Root() {
     return (
-      <Provider store={store}>
-        <App store={store}/>
-      </Provider>
+      // <Provider>
+        <App />
+      // </Provider>
     );
   }
   

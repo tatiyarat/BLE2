@@ -1,9 +1,6 @@
 
 import * as React from 'react';
-import { StyleSheet,Image,TouchableOpacity,Text,StatusBar,View,Dimensions,NativeEventEmitter,PermissionsAndroid,
-  NativeModules,AppState,Platform,Alert
-
-} from 'react-native';
+import { StyleSheet,StatusBar} from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage';
 import { NavigationContainer,useNavigation } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
@@ -12,6 +9,8 @@ import { createStackNavigator } from '@react-navigation/stack';
 // import SignUp from './src/';
 import register from './src/register';
 import Menu from './src/promotion'
+import editer from './src/editer'
+
 
 
 
@@ -19,55 +18,27 @@ export default class App extends React.Component {
     
   constructor(props) {
     super(props);
-    this.props = props;
     this.state = {
       nav:AsyncStorage.getItem('datakey')==null?"register":"Craigslist",
-
-      serverAddr: "192.168.101.201",
-
-      title: "สวัสดีค้าา",
-
-      def_Location: "000",
-      def_Order: "00",
-      def_Message: "ShellHut",
-      def_RSSI: 0,
-
-      cur_Location: "",
-      cur_Order: "",
-      cur_Message: "",
-      cur_RSSI: 0,
-      
-      get_Location: "",
-      get_Order: "",
-      get_Message: "",
-      get_RSSI: 0,
-
-      timeToScan: 5,
-   
-      peripherals: new Map(),
-      appState: '',
-      btEnabled: false,
-      minRSSI: -75,
-
-      runing:0,
     }
-    // this.handleAppStateChange = this.handleAppStateChange.bind(this);
-
   }
-
- 
-
-
-  componentDidMount(){
-    
-    
- 
+  componentDidMount() {
+    getUser = async () => {
+      try {
+        const value = await AsyncStorage.getItem('datakey');
+        if (value !== null) {
+          // We have data!!
+          this.setState({nav:"Craigslist"});
+          console.log(value);
+          return value != null ? JSON.parse(value) : null
+          
+        }
+      } catch (error) {
+        return null;
+        // Error retrieving data
+      }
+    };
   }
-
-  componentWillUnmount(){
-   
-  }
-
   render() {
     
     const Stack = createStackNavigator();
@@ -75,11 +46,10 @@ export default class App extends React.Component {
       <NavigationContainer  >
       <StatusBar hidden={true} />
       <Stack.Navigator  initialRouteName={this.state.nav } headerMode={'none'}>
-          <Stack.Screen name="Register" 
-          component={register}/>
-          <Stack.Screen name="Craigslist" component={Menu} 
-          headerMode={"none"}
-          />
+          <Stack.Screen name="Register"  component={register}/>
+          <Stack.Screen name="Craigslist" component={Menu} />
+          <Stack.Screen name="editprofile" component={editer} />
+
       </Stack.Navigator>
     </NavigationContainer>
     );

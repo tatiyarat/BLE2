@@ -23,7 +23,6 @@ export default class ProfileCardView extends Component {
     this.state={
         SMS4ditgit:'',
         code:'',
-        trackerID:'',
     }
     this.buttonPress = this.buttonPress.bind(this);
     this.fails = this.fails.bind(this);
@@ -40,9 +39,32 @@ export default class ProfileCardView extends Component {
     console.log("MyApp", "Generated Password : " + generatedPassword);
   }
   buttonPress () {
+    this.fetchdata()
     this.storeData()
     console.log('called');
     this.props.nav.navigate('Craigslist');
+  }
+
+  fetchdata = async() => {
+    try {
+      const data = {
+        firstname: this.props.firstname,
+        lastname: this.props.lastname,
+        gender: this.props.gender,
+        old: this.props.old,
+        tell: this.props.phone,
+        email: this.props.email,
+        trackerID: this.props.trackerID,
+        avatar:this.props.avatar,
+    }
+    // http://192.168.101.201/reciveLog.php
+      const jsonValue = JSON.stringify(data)
+      await AsyncStorage.setItem('datakey', jsonValue)
+      
+    } catch (e) {
+      // saving error
+      console.log('saving error');
+    }
   }
 
   storeData = async () => {
@@ -54,10 +76,9 @@ export default class ProfileCardView extends Component {
         old: this.props.old,
         tell: this.props.phone,
         email: this.props.email,
-        trackerID: this.state.trackerID,
+        trackerID: this.props.trackerID,
         avatar:this.props.avatar,
     }
-   
       const jsonValue = JSON.stringify(data)
       await AsyncStorage.setItem('datakey', jsonValue)
       
@@ -93,29 +114,13 @@ export default class ProfileCardView extends Component {
         console.warn(err);
     }
 }
-convermobile2trackerID(){
-    let str1 = this.props.phone+this.state.SMS4ditgit;
-    str1 = str1.replace(/0/g, "A");
-    str1 = str1.replace(/1/g, "B");
-    str1 = str1.replace(/2/g, "C");
-    str1 = str1.replace(/3/g, "D");
-    str1 = str1.replace(/4/g, "E");
-    str1 = str1.replace(/5/g, "F");
-    str1 = str1.replace(/6/g, "G");
-    str1 = str1.replace(/7/g, "H");
-    str1 = str1.replace(/8/g, "I");
-    str1 = str1.replace(/9/g, "J");
-    // this.state.trackerID = str1;
-    this.setState({trackerID:str1});
-    
-    console.log(this.state.trackerID+"trackerID");
-}
 
-async verifypassword () {
+
+verifypassword () {
   if(this.state.code !== null && this.state.code !== ''){
     if(this.state.SMS4ditgit === this.state.code){
-        await this.convermobile2trackerID();
-        Alert.alert("รหัสถูกต้อง: "+this.state.trackerID, "ถูกต้องนะครับบบบบบ ",[{text: "OK", onPress: () =>this.buttonPress()}]);
+ 
+        Alert.alert("รหัสถูกต้อง: ", "ถูกต้องนะครับบบบบบ ",[{text: "OK", onPress: () =>this.buttonPress()}]);
     }else{
         Alert.alert("รหัสผิดพลาด", "รหัสไม่ถูกต้องน่ะครับบบบ");
     }

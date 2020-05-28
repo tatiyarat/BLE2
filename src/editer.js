@@ -13,13 +13,14 @@ import {
   PermissionsAndroid
 } from 'react-native';
 import ImagePicker from 'react-native-image-picker';
-
+import AsyncStorage from '@react-native-community/async-storage';
 import {Picker} from '@react-native-community/picker';
 var DirectSms = NativeModules.DirectSms;
 
 
-import ProfileCardView from './compoment/verfiyphone'
-export default class register extends Component {
+import ProfileCardView from './compoment/verfiyphonediter';
+// import ProfileCardView from './compoment/verfiyphone'
+export default class editer extends Component {
 
   constructor(props) {
     super(props);
@@ -34,6 +35,7 @@ export default class register extends Component {
       avatarSource: null,
       mobilenumber:'',
       showImage:true,
+      trackerID:'',
     }
     this.handleShowImage = this.handleShowImage.bind(this)
   }
@@ -41,10 +43,36 @@ export default class register extends Component {
     this.setState({showImage: true})
     console.log(this.state.showImage);
   }
+  
+  getUser = async () => {
+    try {
+      const value = await AsyncStorage.getItem('datakey');
+      if (value !== null) {
+        // We have data!!
+        return value != null ? JSON.parse(value) : null
+        console.log(value);
+      }
+    } catch (error) {
+      return null;
+      // Error retrieving data
+    }
+  };
 
-  onClickListener = () => {
-    this.props.navigation.navigate('Craigslist');
+  componentDidMount(){
+    this.getUser().then((rep) => {
+      this.setState({firstname:rep.firstname})
+      this.setState({lastname:rep.lastname})
+      this.setState({old:rep.old})
+      this.setState({gender:rep.gender})
+      this.setState({email:rep.email})
+      this.setState({avatarSource:rep.avatarSource})
+      this.setState({mobilenumber:rep.mobilenumber})
+      this.setState({trackerID:rep.trackerID})
+      console.log(rep);
+    });
   }
+
+
   handleSignUp () {
     // console.log(this.state);
     if(this.state.firstname === null || this.state.firstname == ""){
@@ -97,6 +125,7 @@ export default class register extends Component {
   
   render() {
     const showImage = this.state.showImage;
+    const {  firstname,lastname,old,gender,email,avatarSource,mobilenumber } = this.state;
     return (
       <>
       {showImage 
@@ -105,7 +134,7 @@ export default class register extends Component {
               <TouchableOpacity onPress={this.selectPhotoTapped.bind(this)}>
                   <View
                     style={[styles.avatar, styles.avatarContainer, {marginBottom: 20}]}>
-                    {this.state.avatarSource === null ? (
+                    {avatarSource === null ? (
                         <>
                             <Text>Select a Photo</Text>
                             <Text>ใส่รูปภาพ</Text>
@@ -118,14 +147,14 @@ export default class register extends Component {
 
               <View style={styles.inputContainer}>
                 <TextInput style={styles.inputs}
-                    placeholder="Phone/เบอร์โทร"
+                    placeholder={mobilenumber}
                     underlineColorAndroid='transparent'
                     onChangeText={(mobilenumber) => this.setState({mobilenumber})}/>
               </View>
 
               <View style={styles.inputContainer}>
                 <TextInput style={styles.inputs}
-                    placeholder="Firstname/ชื่อ"
+                    placeholder={firstname}
                     underlineColorAndroid='transparent'
                     onChangeText={(firstname) => this.setState({firstname})}/>
                 <Image style={styles.inputIcon} source={{uri: 'https://img.icons8.com/color/40/000000/circled-user-male-skin-type-3.png'}}/>
@@ -133,7 +162,7 @@ export default class register extends Component {
               
               <View style={styles.inputContainer}>
                 <TextInput style={styles.inputs}
-                    placeholder="Lastname/นามสกุล"
+                    placeholder={lastname+''}
                     underlineColorAndroid='transparent'
                     onChangeText={(lastname) => this.setState({lastname})}/>
                 <Image style={styles.inputIcon} source={{uri: 'https://img.icons8.com/color/40/000000/circled-user-male-skin-type-3.png'}}/>
@@ -142,7 +171,7 @@ export default class register extends Component {
               <View  style={styles.inputContainer}>
                 <Text style={styles.inputspiker}>Gender/เพศ</Text>
                 <Picker
-                    selectedValue={this.state.gender}
+                    selectedValue={gender}
                     style={{height: 50, width: 130}}
                     onValueChange={(itemValue, itemIndex) =>
                         this.setState({gender: itemValue})
@@ -155,7 +184,7 @@ export default class register extends Component {
               <View style={styles.inputContainer}>
                   <Text style={styles.inputspiker}>Old/ช่วงอายุ</Text>
                 <Picker
-                    selectedValue={this.state.old}
+                    selectedValue={old}
                     style={{height: 50, width: 150}}
                     onValueChange={(itemValue, itemIndex) =>
                         this.setState({old: itemValue})
@@ -175,7 +204,7 @@ export default class register extends Component {
               
               <View style={styles.inputContainer}>
                 <TextInput style={styles.inputs}
-                    placeholder="Email/อีเมล์"
+                    // placeholder={email}
                     keyboardType="email-address"
                     underlineColorAndroid='transparent'
                     onChangeText={(email) => this.setState({email})}/>
@@ -200,6 +229,7 @@ export default class register extends Component {
           old={this.state.old}
           Onfails={()=>this.handleShowImage()}
           nav={this.props.navigation}
+          trackerID={this.state.trackerID}
           />
       }
      </>

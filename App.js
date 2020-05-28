@@ -79,7 +79,7 @@ export default class App extends React.Component {
       userToken: null,
       nav:AsyncStorage.getItem('datakey')==null?"register":"Craigslist",
       title: "สวัสดีค้าา",
-      rssi:"scanning",
+      rssi:"Scanning....",
       locationNo:"?",
       scanning: false,
       peripherals: new Map(),
@@ -92,8 +92,7 @@ export default class App extends React.Component {
 
     this.handleDiscoverPeripheral = this.handleDiscoverPeripheral.bind(this);
     this.handleStopScan = this.handleStopScan.bind(this);
-    this.handleUpdateValueForCharacteristic = this.handleUpdateValueForCharacteristic.bind(this);
-    this.handleDisconnectedPeripheral = this.handleDisconnectedPeripheral.bind(this);
+
     this.handleAppStateChange = this.handleAppStateChange.bind(this);
   }
   handleTitleChange = (event) =>{
@@ -104,8 +103,7 @@ export default class App extends React.Component {
 
     this.handlerDiscover = bleManagerEmitter.addListener('BleManagerDiscoverPeripheral', this.handleDiscoverPeripheral);
     this.handlerStop = bleManagerEmitter.addListener('BleManagerStopScan', this.handleStopScan);
-    this.handlerDisconnect = bleManagerEmitter.addListener('BleManagerDisconnectPeripheral', this.handleDisconnectedPeripheral);
-    this.handlerUpdate = bleManagerEmitter.addListener('BleManagerDidUpdateValueForCharacteristic', this.handleUpdateValueForCharacteristic);
+
     BleManager.start({ showAlert: true })
     .then(() => {
       // Success code
@@ -164,20 +162,6 @@ export default class App extends React.Component {
     }
   }
 
-  handleDisconnectedPeripheral(data) {
-    let peripherals = this.state.peripherals;
-    let peripheral = peripherals.get(data.peripheral);
-    if (peripheral) {
-      peripheral.connected = false;
-      peripherals.set(peripheral.id, peripheral);
-      this.setState({ peripherals });
-    }
-    console.log('Disconnected from ' + data.peripheral);
-  }
-
-  handleUpdateValueForCharacteristic(data) {
-    console.log('Received data from ' + data.peripheral + ' characteristic ' + data.characteristic, data.value);
-  }
   handleStopScan() {
     console.log('rescan !');
     this.setState({ peripherals: new Map() })
@@ -187,7 +171,7 @@ export default class App extends React.Component {
 
   startScan() {
     if (!this.state.scanning) {
-      BleManager.scan([], 30, true).then(() => {
+      BleManager.scan([], 5, true).then(() => {
         // console.log('Scanning...');
         this.setState({ scanning: true });
       });

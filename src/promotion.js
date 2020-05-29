@@ -55,6 +55,16 @@ export default class  Menu extends Component {
       status:"...",
 
       modalVisible: false,
+
+
+      firstname:'',
+      lastname:'',
+      old:'',
+      gender:'',
+      email: '',
+      avatarSource: null,
+      mobilenumber:'',
+      trackerID:'',
     }
     this.handleDiscoverPeripheral = this.handleDiscoverPeripheral.bind(this);
     this.handleStopScan = this.handleStopScan.bind(this);
@@ -80,7 +90,18 @@ export default class  Menu extends Component {
   };
   componentDidMount(){
     // console.log("User ",this.getUser());
-    
+    this.getUser().then((rep) => {
+      this.setState({firstname:rep.firstname})
+      this.setState({lastname:rep.lastname})
+      this.setState({old:rep.old})
+      this.setState({gender:rep.gender})
+      this.setState({email:rep.email})
+      this.setState({avatarSource:rep.avatarSource})
+      this.setState({mobilenumber:rep.tell})
+      this.setState({trackerID:rep.trackerID})
+      console.log(rep);
+    });
+
     this.handlerDiscover = bleManagerEmitter.addListener('BleManagerDiscoverPeripheral', this.handleDiscoverPeripheral);
     this.handlerStop = bleManagerEmitter.addListener('BleManagerStopScan', this.handleStopScan);
     this.handlerDisconnect = bleManagerEmitter.addListener('BleManagerDisconnectPeripheral', this.handleDisconnectedPeripheral);
@@ -174,12 +195,7 @@ export default class  Menu extends Component {
       }
     }
     this.fetchdata('fast_pass')
-    // setTimeout(()=>{
-    //   console.log('=======================')
-    //   console.log('rescan !<CHK-CUR>'+ cur_Location +" : " + cur_Order);
-    //   console.log('=======================')
-    // },2000)
-    
+
     this.setState({ peripherals: new Map() })
     this.startScan()
   } //function
@@ -231,12 +247,10 @@ export default class  Menu extends Component {
 
   fetchdata = async (event) => {
 //===============================================================================
-// console.log( moment().format('YYYY/MM/DD,HH:mm'));
-// return
       const userProfile = await this.getUser();
       const formData = new FormData();
       const userDateTime = new Date();
-      const {cur_Location,cur_Order,cur_Message} = this.state
+      const {cur_Location,cur_Order,cur_Message,cur_RSSI} = this.state
       formData.append("t_id", userProfile.trackerID);
       formData.append("s_id", cur_Location);
       formData.append("s_zone", cur_Order);
@@ -251,13 +265,24 @@ export default class  Menu extends Component {
       })
       .then((serviceResponse) => { 
         console.log(serviceResponse);
-        if (event == 'fast_pass') {
-          
-        } else if (event == 'chk_in'){
-          Alert.alert("Check-In: ลงเวลาเข้า","คุณ "+userProfile.firstname+" "+userProfile.lastname +"\nที่จุด ["+cur_Location+"] "+cur_Message+"\nณ วันที่ "+moment().format('DD/MM/YYYY, HH:mm'))
-        } else{
-          Alert.alert("Check-Out: ลงเวลาออก","คุณ "+userProfile.firstname+" "+userProfile.lastname +"\nที่จุด ["+cur_Location+"] "+cur_Message+"\nณ วันที่ "+moment().format('DD/MM/YYYY, HH:mm'))
+        if(cur_RSSI > -50){
+          if (event == 'chk_out') {
+            Alert.alert("Check-Out: ลงเวลาออก","คุณ "+userProfile.firstname+" "+userProfile.lastname +"\nที่จุด ["+cur_Location+"] "+cur_Message+"\nณ วันที่ "+moment().format('DD/MM/YYYY, HH:mm'))
+          } else if (event == 'chk_in'){
+            Alert.alert("Check-In: ลงเวลาเข้า","คุณ "+userProfile.firstname+" "+userProfile.lastname +"\nที่จุด ["+cur_Location+"] "+cur_Message+"\nณ วันที่ "+moment().format('DD/MM/YYYY, HH:mm'))
+          } else{
+  
+          }
+        }else{
+          if (event == 'chk_out') {
+            Alert.alert("Error","ไม่สามารถ Check-Out ได้คลื่นสัณญาต่ำ")
+          } else if (event == 'chk_in'){
+            Alert.alert("Error","ไม่สามารถ Check-In ได้คลื่นสัณญาต่ำ")
+          } else{
+  
+          }
         }
+       
         return serviceResponse.json() 
       } )
       .catch((error) => console.warn("fetch error:", error))
@@ -277,7 +302,7 @@ export default class  Menu extends Component {
   render() {
   // console.log('http://192.168.101.201/'+this.state.cur_Location+'/index.html')
   const date = new Date();
-  const { modalVisible } = this.state;
+  const { modalVisible,cur_Location,cur_Message,cur_Order,cur_RSSI,firstname,lastname,avatar } = this.state;
     return(
       <>
         <Modal
@@ -342,24 +367,26 @@ export default class  Menu extends Component {
         <View style={{marginLeft:5}}>
           <View style={{ flexDirection: 'row'}}>
               <View>
-                
                 <Image
                   style={{ width: 50, height: 45,marginTop: 5,}}
-                  source={{uri:'http://192.168.101.201/'+this.state.cur_Location+'/logo/default.png?'+date.getTime()}}
+                  source={{uri:'http://192.168.101.201/'+cur_Location+'/logo/default.png?'+date.getTime()}}
                 />
               </View>
           </View>    
           <View style={{ flexDirection: 'row',alignItems:'center'}}>
-              <Text>{this.state.cur_Message}</Text>
+              <Text>{cur_Message}</Text>
           </View>
         </View>
 
         <View style={{textAlign:"center", flex:2,alignItems: 'center'}}>
-          {this.state.cur_Location != '000'?(
+          {cur_Location != '000'?(
             <>
               <Text style={{  fontWeight: 'bold',alignSelf:'center'}}>
-              สวัสดีค้าา
-            </Text>
+                สวัสดีค้า
+              </Text>
+              <Text style={{  fontWeight: 'bold',alignSelf:'center'}}>
+                คุณ {firstname}  {lastname}
+              </Text>
             </>
           ):(
             <>
@@ -373,14 +400,14 @@ export default class  Menu extends Component {
             <TouchableOpacity onPress={() => {this.setModalVisible(true)}}>
               <Image
                 style={styles.editcircle}
-                source={require('./logo/te.jpg')}
+                source={avatar}
               />
             </TouchableOpacity>
 
             <View>
               <Text style={{ fontWeight:'bold',alignItems:'center'}}>
-                {this.state.cur_Order}
-                {this.state.cur_RSSI} 
+                {cur_Order}
+                {cur_RSSI} 
                 (m)
               </Text>
             </View>
@@ -393,7 +420,7 @@ export default class  Menu extends Component {
     <Text> Message:{this.state.cur_Message} </Text>
     <Text> Rssi:{this.state.cur_RSSI} </Text>
     <Text> Order:  {this.state.cur_Order}</Text>
-    <WebView source={{ uri: 'http://192.168.101.201/'+this.state.cur_Location+'?'+date.getTime()}} />
+    <WebView source={{ uri: 'http://192.168.101.201/'+cur_Location+'?'+date.getTime()}} />
 
     </>
     )

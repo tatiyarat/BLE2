@@ -12,53 +12,55 @@ import Menu from './src/promotion'
 import editer from './src/editer'
 
 
-
-
+function SplashScreen() {
+  return (
+    <View>
+      <Text>Loading...</Text>
+    </View>
+  );
+}
 export default class App extends React.Component {
     
   constructor(props) {
-    console.log(AsyncStorage.getItem('datakey'));
+    // console.log(AsyncStorage.getItem('datakey'));
     
     super(props);
     this.state = {
-      nav: AsyncStorage.getItem('datakey')==null?"Register":"Craigslist",
+      nav:"",
     }
   }
-  componentDidMount() {
-    this.getUser()
+  componentWillMount() {
+    this._loadInitialState().done();
   }
-  getUser = async () => {
+ 
+  _loadInitialState = async () => {
     try {
-      const value = await AsyncStorage.getItem('datakey');
-      if (value !== null) {
-        // We have data!!
-        // this.setState({nav:"Craigslist"});
-        console.log(value);
-        return value != null ? JSON.parse(value) : null
-        
-      }else{
-        this.setState({nav:"Register"});
-      }
+        let value = await AsyncStorage.getItem('datakey');
+        if (value !== null || value === 'true') {
+          this.setState({nav: "Craigslist"});
+        } else {
+          this.setState({nav: "Register"});
+        }
     } catch (error) {
-      
-      return null;
-      // Error retrieving data
+      console.error('Error:AsyncStorage:', error.message);
     }
   };
-  render() {
-    
-    const Stack = createStackNavigator();
-    return (
-      <NavigationContainer  >
-      <StatusBar hidden={true} />
-      <Stack.Navigator  initialRouteName={this.state.nav } headerMode={'none'}>
-          <Stack.Screen name="Register"  component={register}/>
-          <Stack.Screen name="Craigslist" component={Menu} />
-          <Stack.Screen name="editprofile" component={editer} />
 
-      </Stack.Navigator>
-    </NavigationContainer>
-    );
+
+  render() {
+    const Stack = createStackNavigator();
+    const nav = this.state.nav;
+    console.log(nav);
+      return (
+        <NavigationContainer>
+          <StatusBar hidden={true} />
+          <Stack.Navigator  initialRouteName={"Craigslist"} headerMode={'none'}>
+              <Stack.Screen name="Register"  component={register}/>
+              <Stack.Screen name="Craigslist" component={Menu} />
+              <Stack.Screen name="editprofile" component={editer} />
+          </Stack.Navigator>
+        </NavigationContainer>
+        );
   }
 }
 

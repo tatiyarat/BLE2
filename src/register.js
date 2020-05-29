@@ -29,7 +29,7 @@ export default class register extends Component {
       firstname:'',
       lastname:'',
       old:'',
-      gender:'Male',
+      gender:'',
       email: '',
       avatarSource: null,
       mobilenumber:'',
@@ -96,6 +96,8 @@ export default class register extends Component {
 
   
   render() {
+    console.log('image'+this.state.avatarSource);
+    
     const showImage = this.state.showImage;
     return (
       <>
@@ -119,6 +121,7 @@ export default class register extends Component {
               <View style={styles.inputContainer}>
                 <TextInput style={styles.inputs}
                     placeholder="Phone/เบอร์โทร"
+                    keyboardType = 'numeric'
                     underlineColorAndroid='transparent'
                     onChangeText={(mobilenumber) => this.setState({mobilenumber})}/>
               </View>
@@ -192,7 +195,7 @@ export default class register extends Component {
           <ProfileCardView 
           fname={this.state.firstname}
           lname={this.state.lastname}
-          phone={this.state.mobilenumber}
+          phone={this.state.mobilenumber+''}
           gender={this.state.gender}
           email={this.state.email}
           avatar={this.state.avatarSource}

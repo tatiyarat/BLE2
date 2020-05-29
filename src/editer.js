@@ -140,13 +140,14 @@ export default class editer extends Component {
                             <Text>ใส่รูปภาพ</Text>
                         </>
                     ) : (
-                      <Image style={styles.avatar} source={{uri:this.state.avatarSource}} />
+                      <Image style={styles.avatar} source={this.state.avatarSource} />
                     )}
                   </View>
               </TouchableOpacity>
 
               <View style={styles.inputContainer}>
                 <TextInput style={styles.inputs}
+                    keyboardType = 'numeric'
                     value={mobilenumber}
                     underlineColorAndroid='transparent'
                     onChangeText={(mobilenumber) => this.setState({mobilenumber})}/>

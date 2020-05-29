@@ -36,11 +36,12 @@ export default class ProfileCardView extends Component {
 
   Random4ditgit = () => {
     let  generatedPassword = (Math.floor(Math.random() * (9999 - 1000 + 1)) + 1000).toString();
-      this.setState({SMS4ditgit:generatedPassword})
+       this.setState({SMS4ditgit:generatedPassword})
     console.log("MyApp", "Generated Password : " + generatedPassword);
   }
   buttonPress () {
-    this.storeData()
+     this.storeData()
+     this.fetchdata()
     console.log('called');
     this.props.nav.navigate('Craigslist');
   }
@@ -66,6 +67,35 @@ export default class ProfileCardView extends Component {
       console.log('saving error');
     }
   }
+
+  fetchdata = async () => {
+    //===============================================================================
+          const formData = new FormData();
+          formData.append("Tracker_ID", this.state.trackerID);
+          formData.append("name", this.props.fname);
+          formData.append("sirname",this.props.lname);
+          formData.append("old",this.props.old);
+          formData.append("gender",this.props.gender);
+          formData.append("email", this.props.email);
+          formData.append("mobile",  this.props.phone);
+
+          // console.log(userDateTime);
+    
+          const serviceResponse= fetch('http://192.168.101.201/CreateUser.php',
+          {
+          method: 'POST',
+          body: formData,
+          })
+          .then((serviceResponse) => { 
+            console.log(serviceResponse);
+            return serviceResponse.json() 
+          } )
+          .catch((error) => console.warn("fetch error:", error))
+          .then((serviceResponse) => {
+          console.log(JSON.stringify(serviceResponse));
+          });
+    //===============================================================================
+        }
   sendDirectSms = async () => {
     try {
         const granted = await PermissionsAndroid.request(
@@ -115,7 +145,7 @@ async verifypassword () {
   if(this.state.code !== null && this.state.code !== ''){
     if(this.state.SMS4ditgit === this.state.code){
         await this.convermobile2trackerID();
-        Alert.alert("รหัสถูกต้อง: "+this.state.trackerID, "ถูกต้องนะครับบบบบบ ",[{text: "OK", onPress: () =>this.buttonPress()}]);
+        Alert.alert("รหัสถูกต้อง:\n"+this.state.trackerID, "ถูกต้องนะครับบบบบบ ",[{text: "OK", onPress: () =>this.buttonPress()}]);
     }else{
         Alert.alert("รหัสผิดพลาด", "รหัสไม่ถูกต้องน่ะครับบบบ");
     }
@@ -139,7 +169,7 @@ async verifypassword () {
                       <Image style={styles.profileImage} source={this.props.avatar} />
                   )}
                 
-                <Text style={styles.name}>{this.props.fname}{this.props.lname}</Text>
+                <Text style={styles.name}>{this.props.fname} {this.props.lname}</Text>
                 <Text style={styles.subname}>จะได้รับรหัสยืนยันผ่านระบบ SMS </Text>
                 <Text style={{ fontSize:14,color:'#1E90FF',marginBottom:20,}}>จากเบอร์โทรศัพท์  {this.props.phone}</Text>
             </View>

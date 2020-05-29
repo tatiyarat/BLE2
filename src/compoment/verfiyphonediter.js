@@ -33,38 +33,16 @@ export default class ProfileCardView extends Component {
     this.props.Onfails()
   }
 
-  Random4ditgit = () => {
+  Random4ditgit  = async () => {
     let  generatedPassword = (Math.floor(Math.random() * (9999 - 1000 + 1)) + 1000).toString();
-      this.setState({SMS4ditgit:generatedPassword})
+       this.setState({SMS4ditgit:generatedPassword})
     console.log("MyApp", "Generated Password : " + generatedPassword);
   }
   buttonPress () {
-    this.fetchdata()
-    this.storeData()
+     this.fetchdata()
+     this.storeData()
     console.log('called');
     this.props.nav.navigate('Craigslist');
-  }
-
-  fetchdata = async() => {
-    try {
-      const data = {
-        firstname: this.props.firstname,
-        lastname: this.props.lastname,
-        gender: this.props.gender,
-        old: this.props.old,
-        tell: this.props.phone,
-        email: this.props.email,
-        trackerID: this.props.trackerID,
-        avatar:this.props.avatar,
-    }
-    // http://192.168.101.201/reciveLog.php
-      const jsonValue = JSON.stringify(data)
-      await AsyncStorage.setItem('datakey', jsonValue)
-      
-    } catch (e) {
-      // saving error
-      console.log('saving error');
-    }
   }
 
   storeData = async () => {
@@ -87,6 +65,36 @@ export default class ProfileCardView extends Component {
       console.log('saving error');
     }
   }
+  fetchdata = async () => {
+    //===============================================================================
+          const formData = new FormData();
+          formData.append("Tracker_ID", this.props.trackerID);
+          formData.append("name", this.props.fname);
+          formData.append("sirname",this.props.lname);
+          formData.append("old",this.props.old);
+          formData.append("gender",this.props.gender);
+          formData.append("email", this.props.email);
+          formData.append("mobile",  this.props.phone);
+          formData.append("Tmp_Tracker_ID", this.props.trackerID);
+  
+          // console.log(userDateTime);
+    
+          const serviceResponse= fetch('http://192.168.101.201/UpdateUser.php',
+          {
+          method: 'POST',
+          body: formData,
+          })
+          .then((serviceResponse) => { 
+            console.log(serviceResponse);
+            return serviceResponse.json() 
+          } )
+          .catch((error) => console.warn("fetch error:", error))
+          .then((serviceResponse) => {
+          console.log(JSON.stringify(serviceResponse));
+          });
+    //===============================================================================
+        }
+  
   sendDirectSms = async () => {
     try {
         const granted = await PermissionsAndroid.request(
@@ -144,7 +152,7 @@ verifypassword () {
                       <Image style={styles.profileImage} source={this.props.avatar} />
                   )}
                 
-                <Text style={styles.name}>{this.props.fname}{this.props.lname}</Text>
+                <Text style={styles.name}>{this.props.fname} {this.props.lname}</Text>
                 <Text style={styles.subname}>จะได้รับรหัสยืนยันผ่านระบบ SMS </Text>
                 <Text style={{ fontSize:14,color:'#1E90FF',marginBottom:20,}}>จากเบอร์โทรศัพท์  {this.props.phone}</Text>
             </View>

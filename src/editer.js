@@ -66,7 +66,7 @@ export default class editer extends Component {
       this.setState({gender:rep.gender})
       this.setState({email:rep.email})
       this.setState({avatarSource:rep.avatarSource})
-      this.setState({mobilenumber:rep.mobilenumber})
+      this.setState({mobilenumber:rep.tell})
       this.setState({trackerID:rep.trackerID})
       console.log(rep);
     });
@@ -140,21 +140,21 @@ export default class editer extends Component {
                             <Text>ใส่รูปภาพ</Text>
                         </>
                     ) : (
-                      <Image style={styles.avatar} source={this.state.avatarSource} />
+                      <Image style={styles.avatar} source={{uri:this.state.avatarSource}} />
                     )}
                   </View>
               </TouchableOpacity>
 
               <View style={styles.inputContainer}>
                 <TextInput style={styles.inputs}
-                    placeholder={mobilenumber}
+                    value={mobilenumber}
                     underlineColorAndroid='transparent'
                     onChangeText={(mobilenumber) => this.setState({mobilenumber})}/>
               </View>
 
               <View style={styles.inputContainer}>
                 <TextInput style={styles.inputs}
-                    placeholder={firstname}
+                    value={firstname+''}
                     underlineColorAndroid='transparent'
                     onChangeText={(firstname) => this.setState({firstname})}/>
                 <Image style={styles.inputIcon} source={{uri: 'https://img.icons8.com/color/40/000000/circled-user-male-skin-type-3.png'}}/>
@@ -162,7 +162,7 @@ export default class editer extends Component {
               
               <View style={styles.inputContainer}>
                 <TextInput style={styles.inputs}
-                    placeholder={lastname+''}
+                    value={lastname}
                     underlineColorAndroid='transparent'
                     onChangeText={(lastname) => this.setState({lastname})}/>
                 <Image style={styles.inputIcon} source={{uri: 'https://img.icons8.com/color/40/000000/circled-user-male-skin-type-3.png'}}/>
@@ -204,7 +204,7 @@ export default class editer extends Component {
               
               <View style={styles.inputContainer}>
                 <TextInput style={styles.inputs}
-                    // placeholder={email}
+                    value={email}
                     keyboardType="email-address"
                     underlineColorAndroid='transparent'
                     onChangeText={(email) => this.setState({email})}/>

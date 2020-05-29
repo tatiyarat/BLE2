@@ -17,28 +17,34 @@ import editer from './src/editer'
 export default class App extends React.Component {
     
   constructor(props) {
+    console.log(AsyncStorage.getItem('datakey'));
+    
     super(props);
     this.state = {
-      nav:AsyncStorage.getItem('datakey')==null?"register":"Craigslist",
+      nav: AsyncStorage.getItem('datakey')==null?"Register":"Craigslist",
     }
   }
   componentDidMount() {
-    getUser = async () => {
-      try {
-        const value = await AsyncStorage.getItem('datakey');
-        if (value !== null) {
-          // We have data!!
-          this.setState({nav:"Craigslist"});
-          console.log(value);
-          return value != null ? JSON.parse(value) : null
-          
-        }
-      } catch (error) {
-        return null;
-        // Error retrieving data
-      }
-    };
+    this.getUser()
   }
+  getUser = async () => {
+    try {
+      const value = await AsyncStorage.getItem('datakey');
+      if (value !== null) {
+        // We have data!!
+        // this.setState({nav:"Craigslist"});
+        console.log(value);
+        return value != null ? JSON.parse(value) : null
+        
+      }else{
+        this.setState({nav:"Register"});
+      }
+    } catch (error) {
+      
+      return null;
+      // Error retrieving data
+    }
+  };
   render() {
     
     const Stack = createStackNavigator();

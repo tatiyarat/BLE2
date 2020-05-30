@@ -96,7 +96,7 @@ export default class register extends Component {
 
   
   render() {
-    console.log('image'+this.state.avatarSource);
+    // console.log('image'+this.state.avatarSource);
     
     const showImage = this.state.showImage;
     return (

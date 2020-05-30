@@ -51,6 +51,18 @@ export default class App extends React.Component {
     const Stack = createStackNavigator();
     const nav = this.state.nav;
     console.log(nav);
+    if (nav == "Register") {
+      return (
+        <NavigationContainer>
+          <StatusBar hidden={true} />
+          <Stack.Navigator  initialRouteName={"Register"} headerMode={'none'}>
+              <Stack.Screen name="Register"  component={register}/>
+              <Stack.Screen name="Craigslist" component={Menu} />
+              <Stack.Screen name="editprofile" component={editer} />
+          </Stack.Navigator>
+        </NavigationContainer>
+        );
+    } else {
       return (
         <NavigationContainer>
           <StatusBar hidden={true} />
@@ -61,6 +73,8 @@ export default class App extends React.Component {
           </Stack.Navigator>
         </NavigationContainer>
         );
+    }
+      
   }
 }
 

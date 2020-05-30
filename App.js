@@ -11,14 +11,6 @@ import register from './src/register';
 import Menu from './src/promotion'
 import editer from './src/editer'
 
-
-function SplashScreen() {
-  return (
-    <View>
-      <Text>Loading...</Text>
-    </View>
-  );
-}
 export default class App extends React.Component {
     
   constructor(props) {

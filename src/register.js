@@ -9,15 +9,9 @@ import {
   Image,
   Alert,
   PixelRatio,
-  NativeModules,
-  PermissionsAndroid
 } from 'react-native';
 import ImagePicker from 'react-native-image-picker';
-
 import {Picker} from '@react-native-community/picker';
-var DirectSms = NativeModules.DirectSms;
-
-
 import ProfileCardView from './compoment/verfiyphone'
 export default class register extends Component {
 

@@ -99,7 +99,7 @@ export default class  Menu extends Component {
       this.setState({avatarSource:rep.avatarSource})
       this.setState({mobilenumber:rep.tell})
       this.setState({trackerID:rep.trackerID})
-      console.log(rep);
+      // console.log(rep);
     });
 
     this.handlerDiscover = bleManagerEmitter.addListener('BleManagerDiscoverPeripheral', this.handleDiscoverPeripheral);
@@ -302,7 +302,7 @@ export default class  Menu extends Component {
   render() {
   // console.log('http://192.168.101.201/'+this.state.cur_Location+'/index.html')
   const date = new Date();
-  const { modalVisible,cur_Location,cur_Message,cur_Order,cur_RSSI,firstname,lastname,avatar } = this.state;
+  const { modalVisible,cur_Location,cur_Message,cur_Order,cur_RSSI,firstname,lastname,avatarSource } = this.state;
     return(
       <>
         <Modal
@@ -362,23 +362,27 @@ export default class  Menu extends Component {
             </View>
           </View>
         </Modal>
+      
 
-      <View  style={{ flexDirection: 'row', backgroundColor: 'steelblue'}}>
-        <View style={{marginLeft:5}}>
+      {/* headers */}
+      <View  style={{ flexDirection: 'row', backgroundColor: '#BABABA',justifyContent:'center'}}>
+
+        <View style={{margin:5,padding:10}}>
           <View style={{ flexDirection: 'row'}}>
               <View>
                 <Image
-                  style={{ width: 50, height: 45,marginTop: 5,}}
+                  style={{ width: 50, height: 45,marginTop: 5,margin: 5,borderRadius: 50,}}
+                  // source={{uri: 'https://img.icons8.com/color/40/000000/circled-user-male-skin-type-3.png'}}
                   source={{uri:'http://192.168.101.201/'+cur_Location+'/logo/default.png?'+date.getTime()}}
                 />
               </View>
           </View>    
-          <View style={{ flexDirection: 'row',alignItems:'center'}}>
+          <View style={{ flexDirection: 'row',alignItems:'center',justifyContent:'center'}}>
               <Text>{cur_Message}</Text>
           </View>
         </View>
 
-        <View style={{textAlign:"center", flex:2,alignItems: 'center'}}>
+        <View style={{textAlign:"center", flex:2,justifyContent:'center',alignItems: 'center'}}>
           {cur_Location != '000'?(
             <>
               <Text style={{  fontWeight: 'bold',alignSelf:'center'}}>
@@ -388,29 +392,29 @@ export default class  Menu extends Component {
                 คุณ {firstname}  {lastname}
               </Text>
             </>
-          ):(
+            ):(
             <>
-           
+            
             </>
           )}
           
         </View>
 
-        <View  style={{textAlign:"center", flex:1,alignItems: 'center'}}>
+        <View  style={{textAlign:"center", flex:1,alignItems: 'center',}}>
             <TouchableOpacity onPress={() => {this.setModalVisible(true)}}>
               <Image
                 style={styles.editcircle}
-                source={avatar}
+                source={avatarSource}
               />
             </TouchableOpacity>
-
             <View>
-              <Text style={{ fontWeight:'bold',alignItems:'center'}}>
+              <Text style={{ fontWeight:'bold',alignItems:'center',marginBottom:10}}>
                 {cur_Order}
                 {cur_RSSI} 
-                (m)
+                {/* (m) */}
               </Text>
             </View>
+
         </View>
 
       </View>
@@ -439,7 +443,9 @@ const styles = StyleSheet.create({
     width: 50, 
     height: 50,
     margin: 10,
-    borderRadius: 50
+    borderRadius: 50,
+    borderWidth:2, 
+    borderColor:"#3F3F3E",
   },
   modalView: {
     margin: 20,
@@ -455,6 +461,11 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 5
+  },headers: {
+    flexDirection: 'row', 
+    backgroundColor: '#BABABA',
+    
+
   },
   openButton: {
     backgroundColor: "#F194FF",

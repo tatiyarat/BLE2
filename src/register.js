@@ -13,6 +13,8 @@ import {
 import ImagePicker from 'react-native-image-picker';
 import {Picker} from '@react-native-community/picker';
 import ProfileCardView from './compoment/verfiyphone'
+import AsyncStorage from '@react-native-community/async-storage';
+
 export default class register extends Component {
 
   constructor(props) {
@@ -30,6 +32,21 @@ export default class register extends Component {
       showImage:true,
     }
     this.handleShowImage = this.handleShowImage.bind(this)
+  }
+  _loadInitialState = async () => {
+    try {
+        let value = await AsyncStorage.getItem('datakey');
+        if (value !== null || value === 'true') {
+          this.props.navigation.navigate('Craigslist');
+        } else {
+          this.props.navigation.navigate('Register');
+        }
+    } catch (error) {
+      console.error('Error:AsyncStorage:', error.message);
+    }
+  };
+  componentDidMount(){
+    this._loadInitialState()
   }
   handleShowImage = () =>{
     this.setState({showImage: true})

@@ -22,28 +22,28 @@ export default class App extends React.Component {
     }
   }
   componentWillMount() {
-    this._loadInitialState().done();
+    // this._loadInitialState()
   }
  
-  _loadInitialState = async () => {
-    try {
-        let value = await AsyncStorage.getItem('datakey');
-        if (value !== null || value === 'true') {
-          this.setState({nav: "Craigslist"});
-        } else {
-          this.setState({nav: "Register"});
-        }
-    } catch (error) {
-      console.error('Error:AsyncStorage:', error.message);
-    }
-  };
+  // _loadInitialState = async () => {
+  //   try {
+  //       let value = await AsyncStorage.getItem('datakey');
+  //       if (value !== null || value === 'true') {
+  //         this.setState({nav: "Craigslist"});
+  //       } else {
+  //         this.setState({nav: "Register"});
+  //       }
+  //   } catch (error) {
+  //     console.error('Error:AsyncStorage:', error.message);
+  //   }
+  // };
 
 
   render() {
     const Stack = createStackNavigator();
     const nav = this.state.nav;
     console.log(nav);
-    if (nav == "Register") {
+    // if (nav == "Craigslist") {
       return (
         <NavigationContainer>
           <StatusBar hidden={true} />
@@ -54,19 +54,18 @@ export default class App extends React.Component {
           </Stack.Navigator>
         </NavigationContainer>
         );
-    } else {
-      return (
-        <NavigationContainer>
-          <StatusBar hidden={true} />
-          <Stack.Navigator  initialRouteName={"Craigslist"} headerMode={'none'}>
-              <Stack.Screen name="Register"  component={register}/>
-              <Stack.Screen name="Craigslist" component={Menu} />
-              <Stack.Screen name="editprofile" component={editer} />
-          </Stack.Navigator>
-        </NavigationContainer>
-        );
-    }
-      
+    // } else {
+    //   return (
+    //     <NavigationContainer>
+    //       <StatusBar hidden={true} />
+    //       <Stack.Navigator  initialRouteName={"Register"} headerMode={'none'}>
+    //           <Stack.Screen name="Register"  component={register}/>
+    //           <Stack.Screen name="Craigslist" component={Menu} />
+    //           <Stack.Screen name="editprofile" component={editer} />
+    //       </Stack.Navigator>
+    //     </NavigationContainer>
+    //     );
+    // }
   }
 }
 

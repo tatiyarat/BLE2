@@ -15,13 +15,12 @@ import {
 import { WebView } from 'react-native-webview';
 import AsyncStorage from '@react-native-community/async-storage';
 import moment from 'moment';
+import { set } from 'react-native-reanimated';
 var {height, width} = Dimensions.get('window');
 
 // BLE
 const BleManagerModule = NativeModules.BleManager;
 const bleManagerEmitter = new NativeEventEmitter(BleManagerModule);
-
-
 
 export default class  Menu extends Component {
   constructor(props) {
@@ -29,7 +28,7 @@ export default class  Menu extends Component {
     this.props = props;
     this.state = {
       serverAddr: "192.168.101.201",
-      title: "สวัสดีค้าา",
+      title: "สวัสดีค่ะ",
 
       def_Location: "000",
       def_Order: "00",
@@ -47,15 +46,17 @@ export default class  Menu extends Component {
       get_RSSI: 0,
 
       timeToScan: 5,
-   
+      waitToScan: 2000,
+      chkScanBLE: 0,
+    
       peripherals: new Map(),
       appState: '',
       btEnabled: false,
       minRSSI: -71,
+      minChkInOut: -51,
       status:"...",
 
       modalVisible: false,
-
 
       firstname:'',
       lastname:'',
@@ -65,15 +66,15 @@ export default class  Menu extends Component {
       avatarSource: null,
       mobilenumber:'',
       trackerID:'',
+      isScaning:false,
     }
+
     this.handleDiscoverPeripheral = this.handleDiscoverPeripheral.bind(this);
     this.handleStopScan = this.handleStopScan.bind(this);
     this.handleUpdateValueForCharacteristic = this.handleUpdateValueForCharacteristic.bind(this);
     this.handleDisconnectedPeripheral = this.handleDisconnectedPeripheral.bind(this);
-    // this.handleAppStateChange = this.handleAppStateChange.bind(this);
     this.getUser = this.getUser.bind(this)
   } 
-
 
   getUser = async () => {
     try {
@@ -88,6 +89,7 @@ export default class  Menu extends Component {
       // Error retrieving data
     }
   };
+
   componentDidMount(){
     // console.log("User ",this.getUser());
     this.getUser().then((rep) => {
@@ -128,17 +130,21 @@ export default class  Menu extends Component {
   }
 
   componentWillUnmount(){
+    console.log("Unmount");
+    
     this.handleStopScan();
     this.handlerDiscover.remove();
     this.handlerStop.remove();
     this.handlerDisconnect.remove();
     this.handlerUpdate.remove();
   }
-
   
   startScan() {
     if(this.state.cur_Location == '') {
-      this.showDefaultURL()
+      this.setState({cur_Location: this.state.def_Location})
+      this.setState({cur_Order: this.state.def_Order})
+      this.setState({cur_Message: this.state.def_Message})      
+      this.setState({cur_RSSI: this.state.def_RSSI})      
     }
     this.setState({get_Location: ""})
     this.setState({get_Order: ""})
@@ -146,21 +152,16 @@ export default class  Menu extends Component {
     this.setState({get_RSSI: this.state.minRSSI})
     BleManager.scan([], this.state.timeToScan, true).then(() => {
       this.setState({status:"Scanning..."})
-        console.log('Scanning...');
     });
   } //startScan
 
   handleDiscoverPeripheral(peripheral) {
     var peripherals = this.state.peripherals;
     if (typeof peripheral.name == "string" && peripheral.name.indexOf("Holy") >= 0) {
-      
+        this.setState({chkScanBLE: 1});
         peripherals.set(peripheral.id, peripheral);
         this.setState({ peripherals });
-
-        // console.log(peripheral.name+"  == ALL "+peripheral.rssi);
-
         if (peripheral.rssi > this.state.get_RSSI) {
-            // console.log(peripheral.name+"  == RSSI"+peripheral.rssi);
             this.setState({ get_RSSI: peripheral.rssi});
             this.setState({ get_Location: peripheral.name.split(":")[1]});
             this.setState({ get_Order: peripheral.name.split(":")[2]});
@@ -170,51 +171,33 @@ export default class  Menu extends Component {
   }
 
   handleStopScan() {
-    
-    let {get_Location,get_Order,get_Message,get_RSSI,cur_Location,cur_Order,cur_Message,cur_RSSI} = this.state
-
-    // setTimeout(()=>{
-    //   console.log('=======================')
-    //   console.log('rescan !<GET>'+ get_Location +" : " + get_Order);
-    //   console.log('rescan !<CUR>'+ cur_Location +" : " + cur_Order);
-    //   console.log('=======================')
-    // },1000)
-
-    this.setState({status:"Rescan..."})
-    if (get_Location == "" ) {
-      if (cur_Location != "000") {
-        this.showDefaultURL();
-      }  
-    } else {
-      if (get_Location != cur_Location) {
-        this.showLocationURL(get_Location,get_Order,get_Message,get_RSSI);
+    if (this.state.chkScanBLE == 1) {
+      const {get_Location,get_Order,get_Message,get_RSSI,cur_Location,cur_Order,cur_Message,cur_RSSI} = this.state
+      if (get_Location == "" || get_Location == null) {
+       if (cur_Location != "000") {
+         this.setState({cur_Location: this.state.def_Location})
+         this.setState({cur_Order: this.state.def_Order})
+         this.setState({cur_Message: this.state.def_Message})      
+         this.setState({cur_RSSI: this.state.def_RSSI})      
+        }  
       } else {
-          this.setState({cur_Order: get_Order})
-          this.setState({cur_RSSI: get_RSSI})
-          this.setState({cur_Message: get_Message})
+        if (get_Location != cur_Location) {
+         this.setState({cur_Location: get_Location})
+         this.setState({cur_Order: get_Order})
+         this.setState({cur_Message: get_Message})      
+         this.setState({cur_RSSI: get_RSSI})      
+       } else if (cur_Order != get_Order)  {
+            this.setState({cur_Order: get_Order})
+             this.setState({cur_RSSI: get_RSSI})
+            this.setState({cur_Message: get_Message})
+       }
       }
+      this.fetchdata('fast_pass')
+      this.setState({ peripherals: new Map() })
     }
-    this.fetchdata('fast_pass')
-
-    this.setState({ peripherals: new Map() })
-    this.startScan()
+    this.setState({chkScanBLE: 0})
+    setTimeout(() => {this.startScan()}, this.state.waitToScan);
   } //function
-
-
-  showLocationURL(get_Location,get_Order,get_Message,get_RSSI) {
-    this.setState({cur_Location: get_Location})
-    this.setState({cur_Order: get_Order})
-    this.setState({cur_Message: get_Message})      
-    this.setState({cur_RSSI: get_RSSI})      
-  }
-
-  showDefaultURL() {
-    this.setState({cur_Location: this.state.def_Location})
-    this.setState({cur_Order: this.state.def_Order})
-    this.setState({cur_Message: this.state.def_Message})      
-    this.setState({cur_RSSI: this.state.def_RSSI})      
-  }
-
 
   handleUpdateValueForCharacteristic(data) {
     console.log('Received data from ' + data.peripheral + ' characteristic ' + data.characteristic, data.value);
@@ -264,7 +247,7 @@ export default class  Menu extends Component {
       body: formData,
       })
       .then((serviceResponse) => { 
-        console.log(serviceResponse);
+        // console.log(serviceResponse);
         if(cur_RSSI > -50){
           if (event == 'chk_out') {
             Alert.alert("Check-Out: ลงเวลาออก","คุณ "+userProfile.firstname+" "+userProfile.lastname +"\nที่จุด ["+cur_Location+"] "+cur_Message+"\nณ วันที่ "+moment().format('DD/MM/YYYY, HH:mm'))
@@ -287,7 +270,7 @@ export default class  Menu extends Component {
       } )
       .catch((error) => console.warn("fetch error:", error))
       .then((serviceResponse) => {
-      console.log(JSON.stringify(serviceResponse));
+
       });
 //===============================================================================
   }
@@ -323,7 +306,6 @@ export default class  Menu extends Component {
                     <Text style={styles.textStyle}>แก้ไขโปรไฟล์</Text>
                   </TouchableOpacity>
               </View>
-
               <View style={{flexDirection: 'row'}}>
                 <TouchableOpacity
                   style={{ ...styles.openButton, backgroundColor: "#08CC3B",justifyContent:'center', }}
@@ -334,7 +316,6 @@ export default class  Menu extends Component {
                 <Text style={styles.textStyle}>Check in</Text>
                 </TouchableOpacity>
               </View>
-              
               <View style={{flexDirection: 'row'}}>
                   <TouchableOpacity
                     style={{ ...styles.openButton, backgroundColor: "#E5AC0A",justifyContent:'center',}}
@@ -345,9 +326,6 @@ export default class  Menu extends Component {
                   <Text style={styles.textStyle}>Check out</Text>
                   </TouchableOpacity>
               </View>
-              
-      
-
               <View style={{flexDirection: 'row'}}>
                   <TouchableOpacity
                     style={{ ...styles.openButton, backgroundColor: "#F45C44",justifyContent:'center', }}
@@ -363,30 +341,31 @@ export default class  Menu extends Component {
           </View>
         </Modal>
       
-
       {/* headers */}
-      <View  style={{ flexDirection: 'row', backgroundColor: '#BABABA',justifyContent:'center'}}>
-
-        <View style={{margin:5,padding:10}}>
-          <View style={{ flexDirection: 'row'}}>
-              <View>
-                <Image
-                  style={{ width: 50, height: 45,marginTop: 5,margin: 5,borderRadius: 50,}}
-                  // source={{uri: 'https://img.icons8.com/color/40/000000/circled-user-male-skin-type-3.png'}}
-                  source={{uri:'http://192.168.101.201/'+cur_Location+'/logo/default.png?'+date.getTime()}}
-                />
-              </View>
-          </View>    
-          <View style={{ flexDirection: 'row',alignItems:'center',justifyContent:'center'}}>
-              <Text>{cur_Message}</Text>
+      <View  style={{ flexDirection: 'row', backgroundColor: '#BABABA',justifyContent:'center',}}>
+      
+        
+          <View style={{margin:5,padding:10,width:"25%",alignSelf:'flex-start',alignItems:"center"}}>
+            <Image
+              style={{ 
+                borderRadius: 50,
+                width: 65, 
+                height: 65,
+                }}
+              // source={{uri: 'https://img.icons8.com/color/40/000000/circled-user-male-skin-type-3.png'}}
+              source={{uri:'http://192.168.101.201/'+cur_Location+'/logo/default.png'}}
+            />
+             <Text>{cur_Location}</Text>
           </View>
-        </View>
+            
+       
 
-        <View style={{textAlign:"center", flex:2,justifyContent:'center',alignItems: 'center'}}>
+
+        <View style={{justifyContent:'center',alignItems: 'center',width:"50%",textAlign: 'center',alignSelf :"center"}}>
           {cur_Location != '000'?(
             <>
               <Text style={{  fontWeight: 'bold',alignSelf:'center'}}>
-                สวัสดีค้า
+                สวัสดีค่ะ
               </Text>
               <Text style={{  fontWeight: 'bold',alignSelf:'center'}}>
                 คุณ {firstname}  {lastname}
@@ -394,46 +373,46 @@ export default class  Menu extends Component {
             </>
             ):(
             <>
-            
+              <Text style={{  fontWeight: 'bold',alignSelf:'center'}}>
+                ShellHut
+              </Text>
             </>
           )}
-          
         </View>
 
-        <View  style={{textAlign:"center", flex:1,alignItems: 'center',}}>
+        <View  style={{margin:5,padding:10,alignSelf:'flex-end',width:"25%",alignItems:"center"}}>
             <TouchableOpacity onPress={() => {this.setModalVisible(true)}}>
               <Image
                 style={styles.editcircle}
                 source={avatarSource}
               />
             </TouchableOpacity>
-            <View>
-              <Text style={{ fontWeight:'bold',alignItems:'center',marginBottom:10}}>
-                {/* {avatarSource} */}
-                {cur_Order}
-                {cur_RSSI} 
-                {/* (m) */}
-              </Text>
-            </View>
-
         </View>
-
       </View>
 
-    <Text> Status:{this.state.status } </Text>
-    <Text> Location:{this.state.cur_Location }</Text>
-    <Text> Message:{this.state.cur_Message} </Text>
-    <Text> Rssi:{this.state.cur_RSSI} </Text>
-    <Text> Order:  {this.state.cur_Order}</Text>
-    <WebView source={{ uri: 'http://192.168.101.201/'+cur_Location+'?'+date.getTime()}} />
-
+      <WebView source={{ uri: 'http://192.168.101.201/'+cur_Location+'?'+date.getTime()}} />
+      <View style={{flexDirection: 'row', backgroundColor: '#E0E0E0',justifyContent:'center'}}>
+          <View style={{ flexDirection: 'row',alignItems:'center',justifyContent:'center',padding:1,width:'20%'}}>
+              <Text>{this.state.status}</Text>
+          </View>
+          <View style={{ flexDirection: 'row',alignItems:'center',justifyContent:'center',padding:1,width:'20%'}}>
+              <Text>{this.state.cur_Message}</Text>
+          </View>
+          <View style={{ flexDirection: 'row',alignItems:'center',justifyContent:'center',padding:1,width:'20%'}}>
+              <Text>{this.state.cur_Location}</Text>
+          </View>
+          <View style={{ flexDirection: 'row',alignItems:'center',justifyContent:'center',padding:1,width:'20%'}}>
+              <Text>{this.state.cur_Order}</Text>
+          </View>
+          <View style={{ flexDirection: 'row',alignItems:'center',justifyContent:'center',padding:1,width:'20%'}}>
+              <Text>{this.state.cur_RSSI}</Text>
+          </View>
+      </View>
     </>
     )
-  }
- 
+  } 
 } 
 
- 
 const styles = StyleSheet.create({
   centeredView: {
     flex: 1,
@@ -441,8 +420,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginTop: 22,
   },editcircle: {
-    width: 50, 
-    height: 50,
+    width: 65, 
+    height: 65,
     margin: 10,
     borderRadius: 50,
     borderWidth:2, 
@@ -466,8 +445,6 @@ const styles = StyleSheet.create({
   },headers: {
     flexDirection: 'row', 
     backgroundColor: '#BABABA',
-    
-
   },
   openButton: {
     backgroundColor: "#F194FF",

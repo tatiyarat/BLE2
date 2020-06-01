@@ -96,10 +96,10 @@ export default class  Menu extends Component {
       this.setState({old:rep.old})
       this.setState({gender:rep.gender})
       this.setState({email:rep.email})
-      this.setState({avatarSource:rep.avatarSource})
+      this.setState({avatarSource:rep.avatar})
       this.setState({mobilenumber:rep.tell})
       this.setState({trackerID:rep.trackerID})
-      // console.log(rep);
+      console.log(rep);
     });
 
     this.handlerDiscover = bleManagerEmitter.addListener('BleManagerDiscoverPeripheral', this.handleDiscoverPeripheral);
@@ -256,7 +256,7 @@ export default class  Menu extends Component {
       formData.append("s_zone", cur_Order);
       formData.append("date", moment().format('YYYY/MM/DD,HH:mm'));
       formData.append("event", event);
-      console.log(userDateTime);
+      // console.log(userDateTime);
 
       const serviceResponse= fetch('http://192.168.101.201/reciveLog.php',
       {
@@ -315,9 +315,9 @@ export default class  Menu extends Component {
         >
           <View style={styles.centeredView}>
             <View style={styles.modalView}>
-              <View style={{marginTop:10,flexDirection: 'row'}}>
+              <View style={{marginTop:10,flexDirection: 'row',}}>
                   <TouchableOpacity
-                    style={{ ...styles.openButton, backgroundColor: "#2196F3"}}
+                    style={{ ...styles.openButton, backgroundColor: "#2196F3",justifyContent:'center',}}
                     onPress={() => this.gotoeditor(!modalVisible)}
                   >
                     <Text style={styles.textStyle}>แก้ไขโปรไฟล์</Text>
@@ -326,7 +326,7 @@ export default class  Menu extends Component {
 
               <View style={{flexDirection: 'row'}}>
                 <TouchableOpacity
-                  style={{ ...styles.openButton, backgroundColor: "#08CC3B" }}
+                  style={{ ...styles.openButton, backgroundColor: "#08CC3B",justifyContent:'center', }}
                   onPress={() => {
                     this.fetchdata('chk_in');
                   }}
@@ -337,7 +337,7 @@ export default class  Menu extends Component {
               
               <View style={{flexDirection: 'row'}}>
                   <TouchableOpacity
-                    style={{ ...styles.openButton, backgroundColor: "#E5AC0A" }}
+                    style={{ ...styles.openButton, backgroundColor: "#E5AC0A",justifyContent:'center',}}
                     onPress={() => {
                       this.fetchdata('chk_out');
                     }}
@@ -350,7 +350,7 @@ export default class  Menu extends Component {
 
               <View style={{flexDirection: 'row'}}>
                   <TouchableOpacity
-                    style={{ ...styles.openButton, backgroundColor: "#F45C44" }}
+                    style={{ ...styles.openButton, backgroundColor: "#F45C44",justifyContent:'center', }}
                     onPress={() => {
                       this.setModalVisible(!modalVisible);
                     }}
@@ -409,6 +409,7 @@ export default class  Menu extends Component {
             </TouchableOpacity>
             <View>
               <Text style={{ fontWeight:'bold',alignItems:'center',marginBottom:10}}>
+                {/* {avatarSource} */}
                 {cur_Order}
                 {cur_RSSI} 
                 {/* (m) */}
@@ -453,6 +454,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     padding: 40,
     alignItems: "center",
+
     shadowColor: "#000",
     shadowOffset: {
       width: 0,

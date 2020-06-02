@@ -11,13 +11,10 @@ import {
   Dimensions,
   NativeModules,NativeEventEmitter,Platform,PermissionsAndroid,
   Modal,
-  RefreshControl,
-  ScrollView
 } from 'react-native';
 import { WebView } from 'react-native-webview';
 import AsyncStorage from '@react-native-community/async-storage';
 import moment from 'moment';
-import { set } from 'react-native-reanimated';
 var {height, width} = Dimensions.get('window');
 
 // BLE
@@ -74,7 +71,6 @@ export default class  Menu extends Component {
       trackerID:'',
       isScaning:false,
     }
-    // [user, setUser] = React.useState(null);
     this.handleDiscoverPeripheral = this.handleDiscoverPeripheral.bind(this);
     this.handleStopScan = this.handleStopScan.bind(this);
     this.handleUpdateValueForCharacteristic = this.handleUpdateValueForCharacteristic.bind(this);
@@ -143,12 +139,12 @@ export default class  Menu extends Component {
       this.setState({trackerID:rep.trackerID})
 
     });
+    BleManager.enableBluetooth()
     this.setState({chkRescan: 1})
     BleManager.stopScan()
   }
 
   componentWillUnmount() {
-    //console.log("Unmount");
     this.handleStopScan();
     this.handlerDiscover.remove();
     this.handlerStop.remove();
@@ -261,7 +257,6 @@ export default class  Menu extends Component {
       formData.append("s_zone", cur_Order);
       formData.append("date", moment().format('YYYY/MM/DD,HH:mm'));
       formData.append("event", event);
-      // if (cur_RSSI > minChkInOut) {
         const serviceResponse= fetch('http://192.168.101.201/reciveLog.php',
         {
           method: 'POST',

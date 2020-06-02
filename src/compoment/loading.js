@@ -18,6 +18,7 @@ export default class Loading extends Component {
 
   componentDidMount(){
     this._loadInitialState()
+    this.props.navigation.addListener('focus', this.onScreenFocus)
   }
 
 
@@ -37,27 +38,14 @@ export default class Loading extends Component {
         } else {
           this.props.navigation.navigate('Register');
         }
-    } catch (error) {
+    } catch (error) { 
       console.error('Error:AsyncStorage:', error.message);
     }
-  };
+  }; 
+  onScreenFocus = () => {
+    this._loadInitialState()
+  }
 
-  // async checkInitialBluetoothState() {
-  //   const isEnabled = await BluetoothStatus.state();
-  //   if (isEnabled == true) {
-  //     this.props.navigation.navigate('Craigslist');
-  //   } else {
-  //     Alert.alert(
-  //       'Bluethooth',
-  //       'Bluetooth is turn off',
-  //       [{text: "OK", onPress: () => BluetoothStatus.enable()}]
-  //     );
-  //   }
-  // }
-
-  // componentWillUnmount() {
-  //   this.watchID != null && Geolocation.clearWatch(this.watchID);
-  // }
     render() {
       return (
         

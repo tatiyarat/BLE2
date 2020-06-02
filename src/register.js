@@ -24,30 +24,20 @@ export default class register extends Component {
     this.state = {
       firstname:'',
       lastname:'',
-      old:'',
-      gender:'',
+      old:'0-10',
+      gender:'Male',
       email: '',
       avatarSource: null,
       mobilenumber:'',
       showImage:true,
+      uri:null,
+      type:null,
+      name:null,
+      source64:null,
     }
     this.handleShowImage = this.handleShowImage.bind(this)
   }
-  _loadInitialState = async () => {
-    try {
-        let value = await AsyncStorage.getItem('datakey');
-        if (value !== null || value === 'true') {
-          this.props.navigation.navigate('Craigslist');
-        } else {
-          this.props.navigation.navigate('Register');
-        }
-    } catch (error) {
-      console.error('Error:AsyncStorage:', error.message);
-    }
-  };
-  componentDidMount(){
-    this._loadInitialState()
-  }
+
   handleShowImage = () =>{
     this.setState({showImage: true})
     console.log(this.state.showImage);
@@ -69,6 +59,7 @@ export default class register extends Component {
     }else if(this.state.mobilenumber === null || this.state.mobilenumber == ''){
       Alert.alert("ผิดพลาด", "โปรดกรอก เบอร์มือถือ");
     }else{
+      // console.log(this.state);
       this.setState({showImage:false})
     }
   }
@@ -94,10 +85,16 @@ export default class register extends Component {
         console.log('User tapped custom button: ', response.customButton);
       } else {
         let source = {uri: response.uri};
+        const uri = response.uri;
+        const type = response.type;
+        const name = response.fileName;
 
         // You can also display the image using data:
-        // let source = { uri: 'data:image/jpeg;base64,' + response.data };
-
+        let source64 = 'data:image/jpeg;base64,' + response.data ;
+        this.setState({source64:source64})
+        this.setState({uri:uri})
+        this.setState({name:name})
+        this.setState({type:type})
         this.setState({
           avatarSource: source,
         });
@@ -107,14 +104,12 @@ export default class register extends Component {
 
   
   render() {
-    // console.log('image'+this.state.avatarSource);
-    
     const showImage = this.state.showImage;
     return (
       <>
       {showImage 
         ? <ScrollView>
-          <View style={styles.container}>
+            <View style={styles.container}>
               <TouchableOpacity onPress={this.selectPhotoTapped.bind(this)}>
                   <View
                     style={[styles.avatar, styles.avatarContainer, {marginBottom: 20}]}>
@@ -201,7 +196,7 @@ export default class register extends Component {
               </TouchableOpacity>
           
           </View>
-        </ScrollView>
+          </ScrollView>
         :
           <ProfileCardView 
           fname={this.state.firstname}
@@ -214,6 +209,10 @@ export default class register extends Component {
           old={this.state.old}
           Onfails={()=>this.handleShowImage()}
           nav={this.props.navigation}
+          uri={this.state.uri}
+          type={this.state.type}
+          name={this.state.name}
+          source64={this.state.source64}
           />
       }
      </>
@@ -230,12 +229,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#DCDCDC',
+    height: '100%',
   },avatarContainer: {
     borderColor: '#9B9B9B',
     borderWidth: 1 / PixelRatio.get(),
     justifyContent: 'center',
     alignItems: 'center',
     marginTop:15,
+
   },
   avatar: {
     borderRadius: 75,

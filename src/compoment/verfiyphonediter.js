@@ -13,7 +13,7 @@ import {
   TouchableOpacity
 } from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage';
-
+import RNFS from 'react-native-fs';
 var DirectSms = NativeModules.DirectSms;
 
 export default class ProfileCardView extends Component {
@@ -29,7 +29,7 @@ export default class ProfileCardView extends Component {
   }
 
   fails = () => {
-    console.log("fails");
+    // console.log("fails");
     this.props.Onfails()
   }
 
@@ -39,10 +39,7 @@ export default class ProfileCardView extends Component {
     console.log("MyApp", "Generated Password : " + generatedPassword);
   }
   buttonPress () {
-     this.fetchdata()
      this.storeData()
-    console.log('called');
-    this.props.nav.navigate('Craigslist');
   }
 
   storeData = async () => {
@@ -59,7 +56,7 @@ export default class ProfileCardView extends Component {
     }
       const jsonValue = JSON.stringify(data)
       await AsyncStorage.setItem('datakey', jsonValue)
-      
+      setTimeout(() => {this.fetchdata()}, 3000);
     } catch (e) {
       // saving error
       console.log('saving error');
@@ -67,6 +64,7 @@ export default class ProfileCardView extends Component {
   }
   fetchdata = async () => {
     //===============================================================================
+          var data = await RNFS.readFile( this.props.uri, 'base64').then(res => { return res });
           const formData = new FormData();
           formData.append("Tracker_ID", this.props.trackerID);
           formData.append("name", this.props.fname);
@@ -76,9 +74,10 @@ export default class ProfileCardView extends Component {
           formData.append("email", this.props.email);
           formData.append("mobile",  this.props.phone);
           formData.append("Tmp_Tracker_ID", this.props.trackerID);
-  
-          // console.log(userDateTime);
-    
+          formData.append("type",this.props.type);
+          formData.append("name",this.props.name);
+          formData.append("base64",data);
+          console.log(formData);
           const serviceResponse= fetch('http://192.168.101.201/UpdateUser.php',
           {
           method: 'POST',
@@ -86,12 +85,10 @@ export default class ProfileCardView extends Component {
           })
           .then((serviceResponse) => { 
             console.log(serviceResponse);
-            return serviceResponse.json() 
+            this.props.nav.navigate('Craigslist');
           } )
           .catch((error) => console.warn("fetch error:", error))
-          .then((serviceResponse) => {
-          console.log(JSON.stringify(serviceResponse));
-          });
+     
     //===============================================================================
         }
   
@@ -127,8 +124,7 @@ export default class ProfileCardView extends Component {
 verifypassword () {
   if(this.state.code !== null && this.state.code !== ''){
     if(this.state.SMS4ditgit === this.state.code){
- 
-        Alert.alert("รหัสถูกต้อง: ", "ถูกต้องนะครับบบบบบ ",[{text: "OK", onPress: () =>this.buttonPress()}]);
+        Alert.alert("รหัสถูกต้อง", "ถูกต้องนะครับบบบบบ ",[{text: "OK", onPress: () =>this.buttonPress()}]);
     }else{
         Alert.alert("รหัสผิดพลาด", "รหัสไม่ถูกต้องน่ะครับบบบ");
     }
@@ -151,7 +147,6 @@ verifypassword () {
                     ) : (
                       <Image style={styles.profileImage} source={this.props.avatar} />
                   )}
-                
                 <Text style={styles.name}>{this.props.fname} {this.props.lname}</Text>
                 <Text style={styles.subname}>จะได้รับรหัสยืนยันผ่านระบบ SMS </Text>
                 <Text style={{ fontSize:14,color:'#1E90FF',marginBottom:20,}}>จากเบอร์โทรศัพท์  {this.props.phone}</Text>

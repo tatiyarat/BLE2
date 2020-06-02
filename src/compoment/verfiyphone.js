@@ -10,10 +10,12 @@ import {
   TextInput,
   PermissionsAndroid,
   NativeModules,
-  TouchableOpacity
+  TouchableOpacity,
+  Platform
 } from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage';
-
+import RNFS from 'react-native-fs';
+// import RNFetchBlob from 'react-native-fetch-blob'
 var DirectSms = NativeModules.DirectSms;
 
 export default class ProfileCardView extends Component {
@@ -41,9 +43,6 @@ export default class ProfileCardView extends Component {
   }
   buttonPress () {
      this.storeData()
-     this.fetchdata()
-    console.log('called');
-    this.props.nav.navigate('Craigslist');
   }
 
   storeData = async () => {
@@ -61,39 +60,72 @@ export default class ProfileCardView extends Component {
    
       const jsonValue = JSON.stringify(data)
       await AsyncStorage.setItem('datakey', jsonValue)
-      
+      setTimeout(() => {this.fetchdata()}, 3000);
     } catch (e) {
-      // saving error
       console.log('saving error');
     }
   }
 
   fetchdata = async () => {
     //===============================================================================
-          const formData = new FormData();
-          formData.append("Tracker_ID", this.state.trackerID);
-          formData.append("name", this.props.fname);
-          formData.append("sirname",this.props.lname);
-          formData.append("old",this.props.old);
-          formData.append("gender",this.props.gender);
-          formData.append("email", this.props.email);
-          formData.append("mobile",  this.props.phone);
-
-          // console.log(userDateTime);
-    
-          const serviceResponse= fetch('http://192.168.101.201/CreateUser.php',
-          {
-          method: 'POST',
-          body: formData,
-          })
-          .then((serviceResponse) => { 
-            console.log(serviceResponse);
-            return serviceResponse.json() 
-          } )
-          .catch((error) => console.warn("fetch error:", error))
-          .then((serviceResponse) => {
-          console.log(JSON.stringify(serviceResponse));
-          });
+          // var data = await RNFS.readFile( this.props.uri, 'base64').then(res => { return res });
+          // const  formData = new FormData();
+          // formData.append("Tracker_ID","XXAAXXAAXXAAXX");
+          // formData.append("name", "test");
+          // formData.append("sirname","test");
+          // formData.append("old","test");
+          // formData.append("gender","test");
+          // formData.append("email", "test");
+          // formData.append("mobile",  "test");
+          // const file = {
+          //   uri: this.props.uri.replace("file://", ""),
+          //   type: this.props.type, // or photo.type
+          //   name: this.props.name
+          // }
+          // formData.append('avatar', file);
+          // // console.log(file);
+          //   // return;
+          // const serviceResponse = RNFetchBlob.fetch('http://192.168.101.201/CreateUser.php',{
+          //   'Content-Type' : 'multipart/form-data',
+          // }, [
+          //   // element with property `filename` will be transformed into `file` in form data
+          //   // { name : 'avatar', filename : 'avatar.png', data: binaryDataInBase64},
+          //   // // custom content type
+          //   // { name : 'avatar-png', filename : 'avatar-png.png', type:'image/png', data: binaryDataInBase64},
+          //   // // part file from storage
+          //   { name : 'avatar-foo', filename : this.props.name, type:this.props.type, data: RNFetchBlob.wrap(this.props.uri)},
+          //   // elements without property `filename` will be sent as plain text
+          //   { name : 'Tracker_ID', data : 'XXAAXXAAXXAAXX'},
+          //   { name : 'name', data : 'test'},
+          //   { name : 'sirname', data : 'test'},
+          //   { name : 'old', data : 'test'},
+          //   { name : 'gender', data : 'test'},
+          //   { name : 'email', data : 'test'},
+          //   { name : 'mobile', data : 'test'}
+          // ]).then((resp) => {
+          //   // ...
+          //   console.log("success",resp);
+            
+          // }).catch((err) => {
+          //   // ...
+          //   console.log("fails",err);
+            
+          // })
+          // ,
+          // body:formData
+          // }, (progressEvent) => {
+          //   const progress = progressEvent.loaded / progressEvent.total;
+          //   console.log(progress);
+          // }).then((res) => console.log(res), (err) => console.log("err",err))
+          // .then((serviceResponse) => { 
+          //   console.log('=============>',serviceResponse);
+          //   // this.props.nav.navigate('Craigslist');
+          //   return serviceResponse.json()
+          // } ).then((json)=>console.log(json)
+          // )
+          // .catch((error) => 
+          // console.log("fetch error:", error
+          // ));
     //===============================================================================
         }
   sendDirectSms = async () => {
@@ -123,6 +155,20 @@ export default class ProfileCardView extends Component {
         console.warn(err);
     }
 }
+futch = (url, opts={}, onProgress) => {
+  console.log(url, opts)
+  return new Promise( (res, rej)=>{
+      var xhr = new XMLHttpRequest();
+      xhr.open(opts.method || 'get', url);
+      for (var k in opts.headers||{})
+          xhr.setRequestHeader(k, opts.headers[k]);
+      xhr.onload = e => res(e.target);
+      xhr.onerror = rej;
+      if (xhr.upload && onProgress)
+          xhr.upload.onprogress = onProgress; // event.loaded / event.total * 100 ; //event.lengthComputable
+      xhr.send(opts.body);
+  });
+}
 convermobile2trackerID(){
     let str1 = this.props.phone+this.state.SMS4ditgit;
     str1 = str1.replace(/0/g, "A");
@@ -142,16 +188,17 @@ convermobile2trackerID(){
 }
 
 async verifypassword () {
-  if(this.state.code !== null && this.state.code !== ''){
-    if(this.state.SMS4ditgit === this.state.code){
-        await this.convermobile2trackerID();
-        Alert.alert("รหัสถูกต้อง:\n"+this.state.trackerID, "ถูกต้องนะครับบบบบบ ",[{text: "OK", onPress: () =>this.buttonPress()}]);
-    }else{
-        Alert.alert("รหัสผิดพลาด", "รหัสไม่ถูกต้องน่ะครับบบบ");
-    }
-  }else{
-        Alert.alert("ผิดพลาด", "โปรดกรอกรหัสยืนยันตัวตน");
-    }
+  Alert.alert("รหัสถูกต้อง:\n"+this.state.trackerID, "ถูกต้องนะครับบบบบบ ",[{text: "OK", onPress: () =>this.buttonPress()}]);
+  // if(this.state.code !== null && this.state.code !== ''){
+  //   if(this.state.SMS4ditgit === this.state.code){
+  //       await this.convermobile2trackerID();
+       
+  //   }else{
+  //       Alert.alert("รหัสผิดพลาด", "รหัสไม่ถูกต้องน่ะครับบบบ");
+  //   }
+  // }else{
+  //       Alert.alxert("ผิดพลาด", "โปรดกรอกรหัสยืนยันตัวตน");
+  //   }
 }
 
   

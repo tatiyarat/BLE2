@@ -45,15 +45,15 @@ export default class  Menu extends Component {
       get_Message: "",
       get_RSSI: 0,
 
-      timeToScan: 5,
-      waitToScan: 2000,
+      timeToScan: 30,
+      waitToScan: 1000,
       chkScanBLE: 0,
     
       peripherals: new Map(),
       appState: '',
       btEnabled: false,
       minRSSI: -71,
-      minChkInOut: -51,
+      minChkInOut: -55,
       status:"...",
 
       modalVisible: false,
@@ -157,8 +157,8 @@ export default class  Menu extends Component {
 
   handleDiscoverPeripheral(peripheral) {
     var peripherals = this.state.peripherals;
+    this.setState({chkScanBLE: 1});
     if (typeof peripheral.name == "string" && peripheral.name.indexOf("Holy") >= 0) {
-        this.setState({chkScanBLE: 1});
         peripherals.set(peripheral.id, peripheral);
         this.setState({ peripherals });
         if (peripheral.rssi > this.state.get_RSSI) {
@@ -166,6 +166,13 @@ export default class  Menu extends Component {
             this.setState({ get_Location: peripheral.name.split(":")[1]});
             this.setState({ get_Order: peripheral.name.split(":")[2]});
             this.setState({ get_Message: peripheral.name.split(":")[3]});
+            if ( (this.state.get_Location != this.state.cur_Location) || (this.state.get_Order != this.state.cur_Order) ) {
+              this.setState({cur_Location: this.state.get_Location})
+              this.setState({cur_Order: this.state.get_Order})
+              this.setState({cur_Message: this.state.get_Message})      
+              this.setState({cur_RSSI: this.state.get_RSSI})
+              BleManager.stopScan()
+            }
         }
     }
   }
@@ -193,8 +200,8 @@ export default class  Menu extends Component {
        }
       }
       this.fetchdata('fast_pass')
-      this.setState({ peripherals: new Map() })
     }
+    this.setState({ peripherals: new Map() })
     this.setState({chkScanBLE: 0})
     setTimeout(() => {this.startScan()}, this.state.waitToScan);
   } //function
@@ -232,46 +239,43 @@ export default class  Menu extends Component {
 //===============================================================================
       const userProfile = await this.getUser();
       const formData = new FormData();
-      const userDateTime = new Date();
-      const {cur_Location,cur_Order,cur_Message,cur_RSSI} = this.state
+      console.log('fetch');
+
+      const {cur_Location,cur_Order,cur_Message,cur_RSSI,minChkInOut} = this.state
       formData.append("t_id", userProfile.trackerID);
       formData.append("s_id", cur_Location);
       formData.append("s_zone", cur_Order);
       formData.append("date", moment().format('YYYY/MM/DD,HH:mm'));
       formData.append("event", event);
-      // console.log(userDateTime);
-
-      const serviceResponse= fetch('http://192.168.101.201/reciveLog.php',
-      {
-      method: 'POST',
-      body: formData,
-      })
-      .then((serviceResponse) => { 
-        // console.log(serviceResponse);
-        if(cur_RSSI > -50){
-          if (event == 'chk_out') {
-            Alert.alert("Check-Out: ลงเวลาออก","คุณ "+userProfile.firstname+" "+userProfile.lastname +"\nที่จุด ["+cur_Location+"] "+cur_Message+"\nณ วันที่ "+moment().format('DD/MM/YYYY, HH:mm'))
-          } else if (event == 'chk_in'){
-            Alert.alert("Check-In: ลงเวลาเข้า","คุณ "+userProfile.firstname+" "+userProfile.lastname +"\nที่จุด ["+cur_Location+"] "+cur_Message+"\nณ วันที่ "+moment().format('DD/MM/YYYY, HH:mm'))
-          } else{
+      if(cur_RSSI > minChkInOut){
+        const serviceResponse= fetch('http://192.168.101.201/reciveLog.php',
+        {
+        method: 'POST',
+        body: formData,
+        })
+        .then((serviceResponse) => { 
+            if (event == 'chk_out') {
+              Alert.alert("Check-Out: ลงเวลาออก","คุณ "+userProfile.firstname+" "+userProfile.lastname +"\nที่จุด ["+cur_Location+"] "+cur_Message+"\nณ วันที่ "+moment().format('DD/MM/YYYY, HH:mm'))
+            } else if (event == 'chk_in'){
+              Alert.alert("Check-In: ลงเวลาเข้า","คุณ "+userProfile.firstname+" "+userProfile.lastname +"\nที่จุด ["+cur_Location+"] "+cur_Message+"\nณ วันที่ "+moment().format('DD/MM/YYYY, HH:mm'))
+            } else {
+              // FAST-PASS event
+            }        
+          })
+        .catch((error) => console.warn("fetch error:", error))
+        .then((serviceResponse) => {
   
-          }
-        }else{
-          if (event == 'chk_out') {
-            Alert.alert("Error","ไม่สามารถ Check-Out ได้คลื่นสัณญาต่ำ")
-          } else if (event == 'chk_in'){
-            Alert.alert("Error","ไม่สามารถ Check-In ได้คลื่นสัณญาต่ำ")
-          } else{
-  
-          }
+        });
+      }else {
+        if (event == 'chk_out') {
+          Alert.alert("Error","ไม่สามารถ Check-Out ได้คลื่นสัณญาต่ำ")
+        } else if (event == 'chk_in'){
+          Alert.alert("Error","ไม่สามารถ Check-In ได้คลื่นสัณญาต่ำ")
+        } else {
+          // FAST-PASS event
         }
-       
-        return serviceResponse.json() 
-      } )
-      .catch((error) => console.warn("fetch error:", error))
-      .then((serviceResponse) => {
-
-      });
+      }
+  
 //===============================================================================
   }
   gotoeditor(visible){

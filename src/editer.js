@@ -29,13 +29,17 @@ export default class editer extends Component {
     this.state = {
       firstname:'',
       lastname:'',
-      old:'',
+      old:'0-10',
       gender:'Male',
       email: '',
       avatarSource: null,
       mobilenumber:'',
       showImage:true,
       trackerID:'',
+      uri:null,
+      type:null,
+      name:null,
+      source64:null,
     }
     this.handleShowImage = this.handleShowImage.bind(this)
   }
@@ -65,7 +69,7 @@ export default class editer extends Component {
       this.setState({old:rep.old})
       this.setState({gender:rep.gender})
       this.setState({email:rep.email})
-      this.setState({avatarSource:rep.avatarSource})
+      this.setState({avatarSource:rep.avatar})
       this.setState({mobilenumber:rep.tell})
       this.setState({trackerID:rep.trackerID})
       console.log(rep);
@@ -111,10 +115,17 @@ export default class editer extends Component {
         console.log('User tapped custom button: ', response.customButton);
       } else {
         let source = {uri: response.uri};
+        const uri = response.uri;
+        const type = response.type;
+        const name = response.fileName;
 
         // You can also display the image using data:
         // let source = { uri: 'data:image/jpeg;base64,' + response.data };
-
+        let source64 = 'data:image/jpeg;base64,' + response.data ;
+        this.setState({source64:source64})
+        this.setState({uri:uri})
+        this.setState({name:name})
+        this.setState({type:type})
         this.setState({
           avatarSource: source,
         });
@@ -231,6 +242,10 @@ export default class editer extends Component {
           Onfails={()=>this.handleShowImage()}
           nav={this.props.navigation}
           trackerID={this.state.trackerID}
+          uri={this.state.uri}
+          type={this.state.type}
+          name={this.state.name}
+          source64={this.state.source64}
           />
       }
      </>

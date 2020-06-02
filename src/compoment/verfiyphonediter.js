@@ -76,6 +76,8 @@ export default class ProfileCardView extends Component {
           formData.append("Tmp_Tracker_ID", this.props.trackerID);
           formData.append("type",'image/jpg');
           formData.append("base64",data);
+          // console.log(formData);
+          
 
           axios.post('http://192.168.101.201/UpdateUser.php', formData, {
             headers: {
@@ -84,7 +86,7 @@ export default class ProfileCardView extends Component {
             }
             }
             ).then(res => {
-            // console.log(res);
+            console.log(res);
             this.props.nav.navigate('Craigslist');
             })
             .catch(err => {

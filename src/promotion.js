@@ -49,7 +49,7 @@ export default class  Menu extends Component {
       get_Message: "",
       get_RSSI: 0,
 
-      timeToScan: 30,
+      timeToScan: 15,
       waitToScan: 2000,
       chkScanBLE: 0,
     
@@ -184,15 +184,18 @@ export default class  Menu extends Component {
         var local_Order = peripheral.name.split(":")[2]
         var local_Message = peripheral.name.split(":")[3]
         var chk_RSSI = this.state.minRSSI
-        console.log('scan');
         
         if (local_RSSI > chk_RSSI) {
             this.setState({ get_RSSI: local_RSSI});
             this.setState({ get_Location: local_Location});
             this.setState({ get_Order: local_Order});
             this.setState({ get_Message: local_Message});
-            if ( (this.state.get_Location != this.state.cur_Location) || (this.state.get_Order != this.state.cur_Order) || (this.state.get_RSSI > this.state.cur_RSSI) ) {
-              BleManager.stopScan()
+            if ( (local_Location != this.state.cur_Location) || (local_Order != this.state.cur_Order) || (local_RSSI > this.state.cur_RSSI) ) {
+              if (local_Location == "CHKI" || local_Location =="CHKO") {
+                    if (local_RSSI > this.state.minChkInOut) {BleManager.stopScan()}                 
+              } else {
+                BleManager.stopScan()
+              }
             }
         }
     }

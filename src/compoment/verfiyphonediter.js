@@ -15,7 +15,7 @@ import {
 import AsyncStorage from '@react-native-community/async-storage';
 import RNFS from 'react-native-fs';
 var DirectSms = NativeModules.DirectSms;
-
+import axios from 'axios';
 export default class ProfileCardView extends Component {
 
   constructor(props) {
@@ -78,16 +78,31 @@ export default class ProfileCardView extends Component {
           formData.append("name",this.props.name);
           formData.append("base64",data);
           console.log(formData);
-          const serviceResponse= fetch('http://192.168.101.201/UpdateUser.php',
-          {
-          method: 'POST',
-          body: formData,
-          })
-          .then((serviceResponse) => { 
-            console.log(serviceResponse);
+
+          axios.post('http://192.168.101.201/CreateUser.php', formData, {
+            headers: {
+            'accept': 'application/json',
+            'Content-Type': `multipart/form-data`
+            }
+            }
+            ).then(res => {
+            console.log(res);
             this.props.nav.navigate('Craigslist');
-          } )
-          .catch((error) => console.warn("fetch error:", error))
+            })
+            .catch(err => {
+            console.log(err.message);
+            });
+      
+          // const serviceResponse= fetch('http://192.168.101.201/UpdateUser.php',
+          // {
+          // method: 'POST',
+          // body: formData,
+          // })
+          // .then((serviceResponse) => { 
+          //   console.log(serviceResponse);
+          //   this.props.nav.navigate('Craigslist');
+          // } )
+          // .catch((error) => console.warn("fetch error:", error))
      
     //===============================================================================
         }

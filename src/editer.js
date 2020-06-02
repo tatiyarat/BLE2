@@ -262,6 +262,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#DCDCDC',
+    height: '100%'
   },avatarContainer: {
     borderColor: '#9B9B9B',
     borderWidth: 1 / PixelRatio.get(),

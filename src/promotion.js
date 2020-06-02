@@ -130,7 +130,6 @@ export default class  Menu extends Component {
       });
     }
     this.startScan()
-   
   }
   onScreenFocus = () => {
     this.getUser().then((rep) => {
@@ -144,6 +143,8 @@ export default class  Menu extends Component {
       this.setState({trackerID:rep.trackerID})
 
     });
+    this.setState({chkRescan: 1})
+    BleManager.stopScan()
   }
 
   componentWillUnmount() {
@@ -301,8 +302,8 @@ export default class  Menu extends Component {
       });
     }
 
-  gotoeditor(visible) {
-    this.setState({ modalVisible: visible });
+  gotoeditor() {
+    this.setState({ modalVisible: false });
     this.props.navigation.navigate('editprofile');
   }
 
@@ -324,7 +325,7 @@ export default class  Menu extends Component {
               <View style={{marginTop:10,flexDirection: 'row',}}>
                   <TouchableOpacity
                     style={{ ...styles.openButton, backgroundColor: "#2196F3",justifyContent:'center',}}
-                    onPress={() => this.gotoeditor(!modalVisible)}
+                    onPress={() => this.gotoeditor()}
                   >
                     <Text style={styles.textStyle}>แก้ไขโปรไฟล์</Text>
                   </TouchableOpacity>

@@ -132,6 +132,10 @@ export default class editer extends Component {
       }
     });
   }
+  goBack(){
+    
+    this.props.navigation.goBack()
+  }
 
   
   render() {
@@ -223,10 +227,16 @@ export default class editer extends Component {
                 <Image style={styles.inputIcon} source={{uri: 'https://img.icons8.com/flat_round/40/000000/secured-letter.png'}}/>
               </View>
 
-              <TouchableOpacity style={[styles.buttonContainer, styles.loginButton]} onPress={() => this.handleSignUp()}>
-                <Text style={styles.btnText}>OK</Text>
-              </TouchableOpacity>
-          
+              <View style={{flexDirection: 'row',}}>
+                <TouchableOpacity style={[styles.buttonContainer, styles.loginButton]} onPress={() => this.handleSignUp()}>
+                  <Text style={styles.btnText}>OK</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity style={[styles.buttonContainer, styles.btnCancel]} onPress={() => this.goBack()}>
+                  <Text style={styles.btnText}>Cancel</Text>
+                </TouchableOpacity>
+              </View>
+              
           </View>
         </ScrollView>
         :
@@ -331,22 +341,25 @@ const styles = StyleSheet.create({
   },
   buttonContainer: {
     height:45,
-    flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom:20,
-    width:300,
+    width:150,
     borderRadius:30,
     backgroundColor:'transparent'
   },
-  btnForgotPassword: {
-    height:15,
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    alignItems: 'flex-end',
-    marginBottom:10,
-    width:300,
-    backgroundColor:'transparent'
+  btnCancel: {
+    backgroundColor: "#F39B2A",
+
+    shadowColor: "#808080",
+    shadowOffset: {
+      width: 0,
+      height: 9,
+    },
+    shadowOpacity: 0.50,
+    shadowRadius: 12.35,
+
+    elevation: 19,
   },
   loginButton: {
     backgroundColor: "#00b5ec",

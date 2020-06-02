@@ -49,14 +49,14 @@ export default class ProfileCardView extends Component {
         lastname: this.props.lname,
         gender: this.props.gender,
         old: this.props.old,
-        tell: this.props.phone,
+        tell: this.props.mobilenumber,
         email: this.props.email,
         trackerID: this.props.trackerID,
         avatar:this.props.avatar,
     }
       const jsonValue = JSON.stringify(data)
       await AsyncStorage.setItem('datakey', jsonValue)
-      setTimeout(() => {this.fetchdata()}, 3000);
+      this.fetchdata()
     } catch (e) {
       // saving error
       console.log('saving error');
@@ -64,7 +64,7 @@ export default class ProfileCardView extends Component {
   }
   fetchdata = async () => {
     //===============================================================================
-          var data = await RNFS.readFile( this.props.uri, 'base64').then(res => { return res });
+          var data = await RNFS.readFile( this.props.avatar.uri, 'base64').then(res => { return res });
           const formData = new FormData();
           formData.append("Tracker_ID", this.props.trackerID);
           formData.append("name", this.props.fname);
@@ -72,38 +72,24 @@ export default class ProfileCardView extends Component {
           formData.append("old",this.props.old);
           formData.append("gender",this.props.gender);
           formData.append("email", this.props.email);
-          formData.append("mobile",  this.props.phone);
+          formData.append("mobile",  this.props.mobilenumber);
           formData.append("Tmp_Tracker_ID", this.props.trackerID);
-          formData.append("type",this.props.type);
-          formData.append("name",this.props.name);
+          formData.append("type",'image/jpg');
           formData.append("base64",data);
-          console.log(formData);
 
-          axios.post('http://192.168.101.201/CreateUser.php', formData, {
+          axios.post('http://192.168.101.201/UpdateUser.php', formData, {
             headers: {
             'accept': 'application/json',
             'Content-Type': `multipart/form-data`
             }
             }
             ).then(res => {
-            console.log(res);
+            // console.log(res);
             this.props.nav.navigate('Craigslist');
             })
             .catch(err => {
             console.log(err.message);
             });
-      
-          // const serviceResponse= fetch('http://192.168.101.201/UpdateUser.php',
-          // {
-          // method: 'POST',
-          // body: formData,
-          // })
-          // .then((serviceResponse) => { 
-          //   console.log(serviceResponse);
-          //   this.props.nav.navigate('Craigslist');
-          // } )
-          // .catch((error) => console.warn("fetch error:", error))
-     
     //===============================================================================
         }
   
@@ -122,8 +108,8 @@ export default class ProfileCardView extends Component {
         );
         if (granted === PermissionsAndroid.RESULTS.GRANTED) {
             this.Random4ditgit()
-            if(this.props.phone){
-              DirectSms.sendDirectSms(this.props.phone, this.state.SMS4ditgit);
+            if(this.props.mobilenumber){
+              DirectSms.sendDirectSms(this.props.mobilenumber, this.state.SMS4ditgit);
             }else{
               Alert.alert("Error", "ไม่มีเบอร์");
             }
@@ -137,15 +123,16 @@ export default class ProfileCardView extends Component {
 
 
 verifypassword () {
-  if(this.state.code !== null && this.state.code !== ''){
-    if(this.state.SMS4ditgit === this.state.code){
-        Alert.alert("รหัสถูกต้อง", "ถูกต้องนะครับบบบบบ ",[{text: "OK", onPress: () =>this.buttonPress()}]);
-    }else{
-        Alert.alert("รหัสผิดพลาด", "รหัสไม่ถูกต้องน่ะครับบบบ");
-    }
-  }else{
-        Alert.alert("ผิดพลาด", "โปรดกรอกรหัสยืนยันตัวตน");
-    }
+  Alert.alert("รหัสถูกต้อง", "ถูกต้องนะครับบบบบบ ",[{text: "OK", onPress: () =>this.buttonPress()}]);
+  // if(this.state.code !== null && this.state.code !== ''){
+  //   if(this.state.SMS4ditgit === this.state.code){
+       
+  //   }else{
+  //       Alert.alert("รหัสผิดพลาด", "รหัสไม่ถูกต้องน่ะครับบบบ");
+  //   }
+  // }else{
+  //       Alert.alert("ผิดพลาด", "โปรดกรอกรหัสยืนยันตัวตน");
+  //   }
 }
 
   

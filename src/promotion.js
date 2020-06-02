@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { Component,useState } from 'react';
 import { BluetoothStatus } from 'react-native-bluetooth-status';
 import BleManager from 'react-native-ble-manager';
 import {
@@ -10,7 +10,9 @@ import {
   Alert,
   Dimensions,
   NativeModules,NativeEventEmitter,Platform,PermissionsAndroid,
-  Modal
+  Modal,
+  RefreshControl,
+  ScrollView
 } from 'react-native';
 import { WebView } from 'react-native-webview';
 import AsyncStorage from '@react-native-community/async-storage';
@@ -22,7 +24,9 @@ var {height, width} = Dimensions.get('window');
 const BleManagerModule = NativeModules.BleManager;
 const bleManagerEmitter = new NativeEventEmitter(BleManagerModule);
 
+
 export default class  Menu extends Component {
+  
   constructor(props) {
     super(props);
     this.props = props;
@@ -46,13 +50,14 @@ export default class  Menu extends Component {
       get_RSSI: 0,
 
       timeToScan: 30,
-      waitToScan: 1000,
+      waitToScan: 2000,
       chkScanBLE: 0,
     
       peripherals: new Map(),
       appState: '',
       btEnabled: false,
-      minRSSI: -71,
+      minRSSI: -70,
+      buffRSSI: -70,
       minChkInOut: -55,
       status:"...",
 
@@ -68,7 +73,7 @@ export default class  Menu extends Component {
       trackerID:'',
       isScaning:false,
     }
-
+    // [user, setUser] = React.useState(null);
     this.handleDiscoverPeripheral = this.handleDiscoverPeripheral.bind(this);
     this.handleStopScan = this.handleStopScan.bind(this);
     this.handleUpdateValueForCharacteristic = this.handleUpdateValueForCharacteristic.bind(this);
@@ -80,18 +85,15 @@ export default class  Menu extends Component {
     try {
       const value = await AsyncStorage.getItem('datakey');
       if (value !== null) {
-        // We have data!!
         return value != null ? JSON.parse(value) : null
-        console.log(value);
       }
     } catch (error) {
       return null;
-      // Error retrieving data
     }
   };
 
-  componentDidMount(){
-    // console.log("User ",this.getUser());
+  componentDidMount() {
+    this.props.navigation.addListener('focus', this.onScreenFocus)
     this.getUser().then((rep) => {
       this.setState({firstname:rep.firstname})
       this.setState({lastname:rep.lastname})
@@ -101,7 +103,7 @@ export default class  Menu extends Component {
       this.setState({avatarSource:rep.avatar})
       this.setState({mobilenumber:rep.tell})
       this.setState({trackerID:rep.trackerID})
-      console.log(rep);
+      // console.log(rep);
     });
 
     this.handlerDiscover = bleManagerEmitter.addListener('BleManagerDiscoverPeripheral', this.handleDiscoverPeripheral);
@@ -126,12 +128,26 @@ export default class  Menu extends Component {
         }
       });
     }
-    this.checkInitialBluetoothState()
+    this.startScan()
+   
+  }
+  onScreenFocus = () => {
+    this.getUser().then((rep) => {
+      this.setState({firstname:rep.firstname})
+      this.setState({lastname:rep.lastname})
+      this.setState({old:rep.old})
+      this.setState({gender:rep.gender})
+      this.setState({email:rep.email})
+      this.setState({avatarSource:rep.avatar})
+      this.setState({mobilenumber:rep.tell})
+      this.setState({trackerID:rep.trackerID})
+     
+    });
+    console.log('onScreenFocus!!!!!!!!!!!!!!!!!!!!!!');
   }
 
-  componentWillUnmount(){
-    console.log("Unmount");
-    
+  componentWillUnmount() {
+    //console.log("Unmount");
     this.handleStopScan();
     this.handlerDiscover.remove();
     this.handlerStop.remove();
@@ -151,7 +167,7 @@ export default class  Menu extends Component {
     this.setState({get_Message: ""})
     this.setState({get_RSSI: this.state.minRSSI})
     BleManager.scan([], this.state.timeToScan, true).then(() => {
-      this.setState({status:"Scanning..."})
+      this.setState({status:"Scanning.."})
     });
   } //startScan
 
@@ -161,19 +177,23 @@ export default class  Menu extends Component {
     if (typeof peripheral.name == "string" && peripheral.name.indexOf("Holy") >= 0) {
         peripherals.set(peripheral.id, peripheral);
         this.setState({ peripherals });
-        if (peripheral.rssi > this.state.get_RSSI) {
-            this.setState({ get_RSSI: peripheral.rssi});
-            this.setState({ get_Location: peripheral.name.split(":")[1]});
-            this.setState({ get_Order: peripheral.name.split(":")[2]});
-            this.setState({ get_Message: peripheral.name.split(":")[3]});
+
+        var local_RSSI = peripheral.rssi
+        var local_Location = peripheral.name.split(":")[1]
+        var local_Order = peripheral.name.split(":")[2]
+        var local_Message = peripheral.name.split(":")[3]
+        var chk_RSSI = this.state.minRSSI
+        
+        if (local_RSSI > chk_RSSI) {
+            this.setState({ get_RSSI: local_RSSI});
+            this.setState({ get_Location: local_Location});
+            this.setState({ get_Order: local_Order});
+            this.setState({ get_Message: local_Message});
             if ( (this.state.get_Location != this.state.cur_Location) || (this.state.get_Order != this.state.cur_Order) ) {
-              this.setState({cur_Location: this.state.get_Location})
-              this.setState({cur_Order: this.state.get_Order})
-              this.setState({cur_Message: this.state.get_Message})      
-              this.setState({cur_RSSI: this.state.get_RSSI})
               BleManager.stopScan()
             }
         }
+
     }
   }
 
@@ -181,28 +201,23 @@ export default class  Menu extends Component {
     if (this.state.chkScanBLE == 1) {
       const {get_Location,get_Order,get_Message,get_RSSI,cur_Location,cur_Order,cur_Message,cur_RSSI} = this.state
       if (get_Location == "" || get_Location == null) {
-       if (cur_Location != "000") {
-         this.setState({cur_Location: this.state.def_Location})
-         this.setState({cur_Order: this.state.def_Order})
-         this.setState({cur_Message: this.state.def_Message})      
-         this.setState({cur_RSSI: this.state.def_RSSI})      
-        }  
-      } else {
-        if (get_Location != cur_Location) {
-         this.setState({cur_Location: get_Location})
-         this.setState({cur_Order: get_Order})
-         this.setState({cur_Message: get_Message})      
-         this.setState({cur_RSSI: get_RSSI})      
-       } else if (cur_Order != get_Order)  {
-            this.setState({cur_Order: get_Order})
-             this.setState({cur_RSSI: get_RSSI})
-            this.setState({cur_Message: get_Message})
-       }
+        if (cur_Location != "000") {
+          this.setState({cur_Location: this.state.def_Location})
+          this.setState({cur_Order: this.state.def_Order})
+          this.setState({cur_Message: this.state.def_Message})      
+          this.setState({cur_RSSI: this.state.def_RSSI})      
+        }
+      } else if ((get_Location != cur_Location) || (cur_Order != get_Order)) {
+          this.setState({cur_Location: get_Location})
+          this.setState({cur_Order: get_Order})
+          this.setState({cur_Message: get_Message})      
+          this.setState({cur_RSSI: get_RSSI})      
       }
-      this.fetchdata('fast_pass')
+      this.fetchdata('fast_pass',cur_Location,cur_Order,cur_RSSI)
     }
     this.setState({ peripherals: new Map() })
     this.setState({chkScanBLE: 0})
+    this.setState({status:"Waiting.."})
     setTimeout(() => {this.startScan()}, this.state.waitToScan);
   } //function
 
@@ -218,67 +233,49 @@ export default class  Menu extends Component {
       peripherals.set(peripheral.id, peripheral);
       this.setState({ peripherals });
     }
-    // console.log('Disconnected from ' + data.peripheral);
   }
 
-  async checkInitialBluetoothState() {
-    const isEnabled = await BluetoothStatus.state();
-    // console.log("check bluetooth on or off", isEnabled);
-    if (isEnabled == true) {
-      // console.log("check bluetooth on ", isEnabled);
-      this.startScan()
-    } else {
-      Alert.alert(
-        'Bluethooth',
-        'Bluetooth is turn off'
-      );
-    }
-  }
 
-  fetchdata = async (event) => {
-//===============================================================================
+
+  fetchdata = async (event,cur_Location,cur_Order,cur_RSSI) => {
       const userProfile = await this.getUser();
       const formData = new FormData();
-      console.log('fetch');
-
-      const {cur_Location,cur_Order,cur_Message,cur_RSSI,minChkInOut} = this.state
+      const {cur_Message,minChkInOut} = this.state
       formData.append("t_id", userProfile.trackerID);
       formData.append("s_id", cur_Location);
       formData.append("s_zone", cur_Order);
       formData.append("date", moment().format('YYYY/MM/DD,HH:mm'));
       formData.append("event", event);
-      if(cur_RSSI > minChkInOut){
+      // if (cur_RSSI > minChkInOut) {
         const serviceResponse= fetch('http://192.168.101.201/reciveLog.php',
         {
-        method: 'POST',
-        body: formData,
+          method: 'POST',
+          body: formData,
         })
         .then((serviceResponse) => { 
-            if (event == 'chk_out') {
-              Alert.alert("Check-Out: ลงเวลาออก","คุณ "+userProfile.firstname+" "+userProfile.lastname +"\nที่จุด ["+cur_Location+"] "+cur_Message+"\nณ วันที่ "+moment().format('DD/MM/YYYY, HH:mm'))
-            } else if (event == 'chk_in'){
-              Alert.alert("Check-In: ลงเวลาเข้า","คุณ "+userProfile.firstname+" "+userProfile.lastname +"\nที่จุด ["+cur_Location+"] "+cur_Message+"\nณ วันที่ "+moment().format('DD/MM/YYYY, HH:mm'))
-            } else {
-              // FAST-PASS event
-            }        
+            // if (event == 'chk_out') {
+            //   Alert.alert("Check-Out: ลงเวลาออก","คุณ "+userProfile.firstname+" "+userProfile.lastname +"\nที่จุด ["+cur_Location+"] "+cur_Message+"\nณ วันที่ "+moment().format('DD/MM/YYYY, HH:mm'))
+            // } else if (event == 'chk_in'){
+            //   Alert.alert("Check-In: ลงเวลาเข้า","คุณ "+userProfile.firstname+" "+userProfile.lastname +"\nที่จุด ["+cur_Location+"] "+cur_Message+"\nณ วันที่ "+moment().format('DD/MM/YYYY, HH:mm'))
+            // } else {
+            //   // FAST-PASS event
+            // }        
           })
         .catch((error) => console.warn("fetch error:", error))
-        .then((serviceResponse) => {
-  
+        .then((serviceResponse) => { 
         });
-      }else {
-        if (event == 'chk_out') {
-          Alert.alert("Error","ไม่สามารถ Check-Out ได้คลื่นสัณญาต่ำ")
-        } else if (event == 'chk_in'){
-          Alert.alert("Error","ไม่สามารถ Check-In ได้คลื่นสัณญาต่ำ")
-        } else {
-          // FAST-PASS event
-        }
+            // } else {
+            //   if (event == 'chk_out') {
+            //     Alert.alert("Error","ไม่สามารถ Check-Out ได้คลื่นสัณญาต่ำ")
+            //   } else if (event == 'chk_in'){
+            //     Alert.alert("Error","ไม่สามารถ Check-In ได้คลื่นสัณญาต่ำ")
+            //   } else {
+            //     // FAST-PASS event
+            //   }
       }
   
-//===============================================================================
-  }
-  gotoeditor(visible){
+
+  gotoeditor(visible) {
     this.setState({ modalVisible: visible });
     this.props.navigation.navigate('editprofile');
   }
@@ -286,8 +283,9 @@ export default class  Menu extends Component {
   setModalVisible = (visible) => {
     this.setState({ modalVisible: visible });
   }
+
   render() {
-  // console.log('http://192.168.101.201/'+this.state.cur_Location+'/index.html')
+
   const date = new Date();
   const { modalVisible,cur_Location,cur_Message,cur_Order,cur_RSSI,firstname,lastname,avatarSource } = this.state;
     return(
@@ -314,7 +312,7 @@ export default class  Menu extends Component {
                 <TouchableOpacity
                   style={{ ...styles.openButton, backgroundColor: "#08CC3B",justifyContent:'center', }}
                   onPress={() => {
-                    this.fetchdata('chk_in');
+                    // this.fetchdata('chk_in',cur_Location,cur_Order,cur_RSSI);
                   }}
                 >
                 <Text style={styles.textStyle}>Check in</Text>
@@ -324,7 +322,7 @@ export default class  Menu extends Component {
                   <TouchableOpacity
                     style={{ ...styles.openButton, backgroundColor: "#E5AC0A",justifyContent:'center',}}
                     onPress={() => {
-                      this.fetchdata('chk_out');
+                      // this.fetchdata('chk_out',cur_Location,cur_Order,cur_RSSI);
                     }}
                   >
                   <Text style={styles.textStyle}>Check out</Text>
@@ -347,24 +345,22 @@ export default class  Menu extends Component {
       
       {/* headers */}
       <View  style={{ flexDirection: 'row', backgroundColor: '#BABABA',justifyContent:'center',}}>
-      
-        
           <View style={{margin:5,padding:10,width:"25%",alignSelf:'flex-start',alignItems:"center"}}>
-            <Image
-              style={{ 
-                borderRadius: 50,
-                width: 65, 
-                height: 65,
-                }}
-              // source={{uri: 'https://img.icons8.com/color/40/000000/circled-user-male-skin-type-3.png'}}
-              source={{uri:'http://192.168.101.201/'+cur_Location+'/logo/default.png'}}
-            />
-             <Text>{cur_Location}</Text>
+            <TouchableOpacity  onPress={() => {
+                    BleManager.stopScan()
+                    }}>
+              <Image
+                style={{ 
+                  borderRadius: 50,
+                  width: 65, 
+                  height: 65,
+                  }}
+                source={{uri:'http://192.168.101.201/'+cur_Location+'/logo/default.png'}}
+              />
+            </TouchableOpacity>
+           
+             <Text>{cur_Message}</Text>
           </View>
-            
-       
-
-
         <View style={{justifyContent:'center',alignItems: 'center',width:"50%",textAlign: 'center',alignSelf :"center"}}>
           {cur_Location != '000'?(
             <>
@@ -383,7 +379,6 @@ export default class  Menu extends Component {
             </>
           )}
         </View>
-
         <View  style={{margin:5,padding:10,alignSelf:'flex-end',width:"25%",alignItems:"center"}}>
             <TouchableOpacity onPress={() => {this.setModalVisible(true)}}>
               <Image
@@ -393,7 +388,6 @@ export default class  Menu extends Component {
             </TouchableOpacity>
         </View>
       </View>
-
       <WebView source={{ uri: 'http://192.168.101.201/'+cur_Location+'?'+date.getTime()}} />
       <View style={{flexDirection: 'row', backgroundColor: '#E0E0E0',justifyContent:'center'}}>
           <View style={{ flexDirection: 'row',alignItems:'center',justifyContent:'center',padding:1,width:'20%'}}>
@@ -423,7 +417,8 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     marginTop: 22,
-  },editcircle: {
+  },
+  editcircle: {
     width: 65, 
     height: 65,
     margin: 10,
@@ -437,7 +432,6 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     padding: 40,
     alignItems: "center",
-
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
@@ -446,7 +440,8 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 5
-  },headers: {
+  },
+  headers: {
     flexDirection: 'row', 
     backgroundColor: '#BABABA',
   },
@@ -466,6 +461,3 @@ const styles = StyleSheet.create({
     alignItems: 'center'
   },
 });
-   
-
-

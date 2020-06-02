@@ -233,7 +233,6 @@ export default class editer extends Component {
           <ProfileCardView 
           fname={this.state.firstname}
           lname={this.state.lastname}
-          phone={this.state.mobilenumber}
           gender={this.state.gender}
           email={this.state.email}
           avatar={this.state.avatarSource}
@@ -244,7 +243,6 @@ export default class editer extends Component {
           trackerID={this.state.trackerID}
           uri={this.state.uri}
           type={this.state.type}
-          name={this.state.name}
           source64={this.state.source64}
           />
       }

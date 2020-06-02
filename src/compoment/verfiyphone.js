@@ -61,7 +61,7 @@ export default class ProfileCardView extends Component {
    
       const jsonValue = JSON.stringify(data)
       await AsyncStorage.setItem('datakey', jsonValue)
-      setTimeout(() => {this.fetchdata()}, 3000);
+      this.fetchdata()
     } catch (e) {
       console.log('saving error');
     }
@@ -80,7 +80,6 @@ export default class ProfileCardView extends Component {
           formData.append("email",  this.props.email);
           formData.append("mobile", this.props.phone);
           formData.append("type",this.props.type);
-          formData.append("name",this.props.name);
           formData.append("data64",data64)
    
       
@@ -127,22 +126,9 @@ export default class ProfileCardView extends Component {
         console.warn(err);
     }
 }
-futch = (url, opts={}, onProgress) => {
-  console.log(url, opts)
-  return new Promise( (res, rej)=>{
-      var xhr = new XMLHttpRequest();
-      xhr.open(opts.method || 'get', url);
-      for (var k in opts.headers||{})
-          xhr.setRequestHeader(k, opts.headers[k]);
-      xhr.onload = e => res(e.target);
-      xhr.onerror = rej;
-      if (xhr.upload && onProgress)
-          xhr.upload.onprogress = onProgress; // event.loaded / event.total * 100 ; //event.lengthComputable
-      xhr.send(opts.body);
-  });
-}
+
 convermobile2trackerID(){
-    let str1 = this.props.phone+this.state.SMS4ditgit;
+    let str1 = this.props.phone+'1234';
     str1 = str1.replace(/0/g, "A");
     str1 = str1.replace(/1/g, "B");
     str1 = str1.replace(/2/g, "C");
@@ -156,21 +142,22 @@ convermobile2trackerID(){
     // this.state.trackerID = str1;
     this.setState({trackerID:str1});
     
-    console.log(this.state.trackerID+"trackerID");
+    // console.log(this.state.trackerID+"trackerID");
 }
 
 async verifypassword () {
- 
-  if(this.state.code !== null && this.state.code !== ''){
-    if(this.state.SMS4ditgit === this.state.code){
-        await this.convermobile2trackerID();
-        Alert.alert("รหัสถูกต้อง:\n"+this.state.trackerID, "ถูกต้องนะครับบบบบบ ",[{text: "OK", onPress: () =>this.buttonPress()}]);
-    }else{
-        Alert.alert("รหัสผิดพลาด", "รหัสไม่ถูกต้องน่ะครับบบบ");
-    }
-  }else{
-        Alert.alxert("ผิดพลาด", "โปรดกรอกรหัสยืนยันตัวตน");
-    }
+  await this.convermobile2trackerID();
+  Alert.alert("รหัสถูกต้อง:\n"+this.state.trackerID, "ถูกต้องนะครับบบบบบ ",[{text: "OK", onPress: () =>this.buttonPress()}]);
+  // if(this.state.code !== null && this.state.code !== ''){
+  //   if(this.state.SMS4ditgit === this.state.code){
+  //       await this.convermobile2trackerID();
+       
+  //   }else{
+  //       Alert.alert("รหัสผิดพลาด", "รหัสไม่ถูกต้องน่ะครับบบบ");
+  //   }
+  // }else{
+  //       Alert.alxert("ผิดพลาด", "โปรดกรอกรหัสยืนยันตัวตน");
+  //   }
 }
 
   

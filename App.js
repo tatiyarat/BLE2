@@ -24,7 +24,7 @@ export default class App extends React.Component {
       return (
         <NavigationContainer>
           <StatusBar hidden={true} />
-          <Stack.Navigator  initialRouteName={"Register"} headerMode={'none'}>
+          <Stack.Navigator  initialRouteName={"Loading"} headerMode={'none'}>
               <Stack.Screen name="Loading" component={Loading}/>
               <Stack.Screen name="Register"  component={register}/>
               <Stack.Screen name="Craigslist" component={Menu} />

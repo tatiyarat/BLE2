@@ -81,6 +81,7 @@ export default class ProfileCardView extends Component {
           formData.append("mobile", this.props.phone);
           formData.append("type",this.props.type);
           formData.append("data64",data64)
+         
    
       
             axios.post('http://192.168.101.201/CreateUser.php', formData, {
@@ -128,7 +129,7 @@ export default class ProfileCardView extends Component {
 }
 
 convermobile2trackerID(){
-    let str1 = this.props.phone+'1234';
+    let str1 = this.props.phone+'1235';
     str1 = str1.replace(/0/g, "A");
     str1 = str1.replace(/1/g, "B");
     str1 = str1.replace(/2/g, "C");

@@ -56,10 +56,11 @@ export default class  Menu extends Component {
       peripherals: new Map(),
       appState: '',
       btEnabled: false,
-      minRSSI: -70,
-      buffRSSI: -70,
-      minChkInOut: -55,
+      minRSSI: -71,
+      buffRSSI: -71,
+      minChkInOut: -61,
       status:"...",
+      chkRescan: 1,
 
       modalVisible: false,
 
@@ -141,9 +142,8 @@ export default class  Menu extends Component {
       this.setState({avatarSource:rep.avatar})
       this.setState({mobilenumber:rep.tell})
       this.setState({trackerID:rep.trackerID})
-     
+
     });
-    console.log('onScreenFocus!!!!!!!!!!!!!!!!!!!!!!');
   }
 
   componentWillUnmount() {
@@ -183,22 +183,22 @@ export default class  Menu extends Component {
         var local_Order = peripheral.name.split(":")[2]
         var local_Message = peripheral.name.split(":")[3]
         var chk_RSSI = this.state.minRSSI
+        console.log('scan');
         
         if (local_RSSI > chk_RSSI) {
             this.setState({ get_RSSI: local_RSSI});
             this.setState({ get_Location: local_Location});
             this.setState({ get_Order: local_Order});
             this.setState({ get_Message: local_Message});
-            if ( (this.state.get_Location != this.state.cur_Location) || (this.state.get_Order != this.state.cur_Order) ) {
+            if ( (this.state.get_Location != this.state.cur_Location) || (this.state.get_Order != this.state.cur_Order) || (this.state.get_RSSI > this.state.cur_RSSI) ) {
               BleManager.stopScan()
             }
         }
-
     }
   }
 
   handleStopScan() {
-    if (this.state.chkScanBLE == 1) {
+    if (this.state.chkScanBLE == 1 && this.state.chkRescan == 1) {
       const {get_Location,get_Order,get_Message,get_RSSI,cur_Location,cur_Order,cur_Message,cur_RSSI} = this.state
       if (get_Location == "" || get_Location == null) {
         if (cur_Location != "000") {
@@ -207,19 +207,31 @@ export default class  Menu extends Component {
           this.setState({cur_Message: this.state.def_Message})      
           this.setState({cur_RSSI: this.state.def_RSSI})      
         }
-      } else if ((get_Location != cur_Location) || (cur_Order != get_Order)) {
+      } else if ((get_Location != cur_Location) || (cur_Order != get_Order) || (get_RSSI > cur_RSSI)) {
           this.setState({cur_Location: get_Location})
           this.setState({cur_Order: get_Order})
           this.setState({cur_Message: get_Message})      
-          this.setState({cur_RSSI: get_RSSI})      
+          this.setState({cur_RSSI: get_RSSI})
       }
       this.fetchdata('fast_pass',cur_Location,cur_Order,cur_RSSI)
     }
     this.setState({ peripherals: new Map() })
     this.setState({chkScanBLE: 0})
     this.setState({status:"Waiting.."})
-    setTimeout(() => {this.startScan()}, this.state.waitToScan);
+    if(this.state.chkRescan == 1) {
+      setTimeout(() => {this.startScan()}, this.state.waitToScan);
+    }
   } //function
+
+  setModalVisible = (visible) => {
+    if (visible) {
+      this.setState({chkRescan: 0})
+    } else {
+      this.setState({chkRescan: 1})
+    }
+    setTimeout(() => {BleManager.stopScan()}, 100);
+    this.setState({ modalVisible: visible });
+  }
 
   handleUpdateValueForCharacteristic(data) {
     console.log('Received data from ' + data.peripheral + ' characteristic ' + data.characteristic, data.value);
@@ -238,10 +250,9 @@ export default class  Menu extends Component {
 
 
   fetchdata = async (event,cur_Location,cur_Order,cur_RSSI) => {
-      const userProfile = await this.getUser();
       const formData = new FormData();
       const {cur_Message,minChkInOut} = this.state
-      formData.append("t_id", userProfile.trackerID);
+      formData.append("t_id", this.state.trackerID);
       formData.append("s_id", cur_Location);
       formData.append("s_zone", cur_Order);
       formData.append("date", moment().format('YYYY/MM/DD,HH:mm'));
@@ -253,41 +264,51 @@ export default class  Menu extends Component {
           body: formData,
         })
         .then((serviceResponse) => { 
-            // if (event == 'chk_out') {
-            //   Alert.alert("Check-Out: ลงเวลาออก","คุณ "+userProfile.firstname+" "+userProfile.lastname +"\nที่จุด ["+cur_Location+"] "+cur_Message+"\nณ วันที่ "+moment().format('DD/MM/YYYY, HH:mm'))
-            // } else if (event == 'chk_in'){
-            //   Alert.alert("Check-In: ลงเวลาเข้า","คุณ "+userProfile.firstname+" "+userProfile.lastname +"\nที่จุด ["+cur_Location+"] "+cur_Message+"\nณ วันที่ "+moment().format('DD/MM/YYYY, HH:mm'))
-            // } else {
-            //   // FAST-PASS event
-            // }        
           })
         .catch((error) => console.warn("fetch error:", error))
         .then((serviceResponse) => { 
         });
-            // } else {
-            //   if (event == 'chk_out') {
-            //     Alert.alert("Error","ไม่สามารถ Check-Out ได้คลื่นสัณญาต่ำ")
-            //   } else if (event == 'chk_in'){
-            //     Alert.alert("Error","ไม่สามารถ Check-In ได้คลื่นสัณญาต่ำ")
-            //   } else {
-            //     // FAST-PASS event
-            //   }
+ 
       }
+
+  fetchdatachk = async (event,cur_Location,cur_Order,cur_RSSI) => {
+
+    const formData = new FormData();
+    const {cur_Message,minChkInOut} = this.state
+    formData.append("t_id", this.state.trackerID);
+    formData.append("s_id", cur_Location);
+    formData.append("s_zone", cur_Order);
+    formData.append("date", moment().format('YYYY/MM/DD,HH:mm'));
+    formData.append("event", event);
   
+      const serviceResponse= fetch('http://192.168.101.201/reciveLog.php',
+      {
+        method: 'POST',
+        body: formData,
+      })
+      .then((serviceResponse) => { 
+          if (event == 'chk_out') {
+            Alert.alert("Check-Out: ลงเวลาออก","คุณ "+this.state.firstname+" "+this.state.lastname +"\nที่จุด ["+cur_Location+"] "+cur_Message+"\nณ วันที่ "+moment().format('DD/MM/YYYY, HH:mm'),[{text: "OK", onPress: () => this.setModalVisible(false)}])
+          } else if (event == 'chk_in'){
+            Alert.alert("Check-In: ลงเวลาเข้า","คุณ "+this.state.firstname+" "+this.state.lastname +"\nที่จุด ["+cur_Location+"] "+cur_Message+"\nณ วันที่ "+moment().format('DD/MM/YYYY, HH:mm'),[{text: "OK", onPress: () => this.setModalVisible(false)}])
+            
+          } else {
+            // FAST-PASS event
+          }        
+        })
+      .catch((error) => console.warn("fetch error:", error))
+      .then((serviceResponse) => { 
+      });
+    }
 
   gotoeditor(visible) {
     this.setState({ modalVisible: visible });
     this.props.navigation.navigate('editprofile');
   }
 
-  setModalVisible = (visible) => {
-    this.setState({ modalVisible: visible });
-  }
-
   render() {
-
   const date = new Date();
-  const { modalVisible,cur_Location,cur_Message,cur_Order,cur_RSSI,firstname,lastname,avatarSource } = this.state;
+  const { modalVisible,cur_Location,cur_Message,cur_Order,cur_RSSI,firstname,lastname,avatarSource,minChkInOut } = this.state;
     return(
       <>
         <Modal
@@ -312,7 +333,11 @@ export default class  Menu extends Component {
                 <TouchableOpacity
                   style={{ ...styles.openButton, backgroundColor: "#08CC3B",justifyContent:'center', }}
                   onPress={() => {
-                    // this.fetchdata('chk_in',cur_Location,cur_Order,cur_RSSI);
+                    if (cur_Location != "000" && cur_RSSI > minChkInOut) {
+                      this.fetchdatachk('chk_in',cur_Location,cur_Order,cur_RSSI);
+                    } else {
+                      Alert.alert("Error","ไม่สามารถ Check-In ได้กรุณาเดินไปที่จุดทีกำหนด\nและทำใหม่อีกครั้ง", [{text: "OK", onPress: () => this.setModalVisible(!modalVisible)}])
+                    }
                   }}
                 >
                 <Text style={styles.textStyle}>Check in</Text>
@@ -322,7 +347,11 @@ export default class  Menu extends Component {
                   <TouchableOpacity
                     style={{ ...styles.openButton, backgroundColor: "#E5AC0A",justifyContent:'center',}}
                     onPress={() => {
-                      // this.fetchdata('chk_out',cur_Location,cur_Order,cur_RSSI);
+                      if (cur_Location != "000" && cur_RSSI > minChkInOut) {
+                        this.fetchdatachk('chk_out',cur_Location,cur_Order,cur_RSSI);
+                      }else{
+                        Alert.alert("Error","ไม่สามารถ Check-Out ได้กรุณาเดินไปที่จุดทีกำหนด\nและทำใหม่อีกครั้ง", [{text: "OK", onPress: () => this.setModalVisible(!modalVisible)}])
+                      }
                     }}
                   >
                   <Text style={styles.textStyle}>Check out</Text>

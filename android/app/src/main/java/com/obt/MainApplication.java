@@ -13,7 +13,6 @@ import java.util.List;
 import com.facebook.react.shell.MainReactPackage;
 import java.util.Arrays;
 
-
  
 public class MainApplication extends Application implements ReactApplication {
 
@@ -33,6 +32,8 @@ public class MainApplication extends Application implements ReactApplication {
           // packages.add(new MyReactNativePackage());
 
           packages.add(new DirectSmsPackage());
+          // packages.add(new MainReactPackage());
+          // packages.add(new RestartPackage());
           return packages;
         }
 

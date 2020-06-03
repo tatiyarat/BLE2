@@ -132,10 +132,6 @@ export default class editer extends Component {
       }
     });
   }
-  goBack(){
-    
-    this.props.navigation.goBack()
-  }
 
   
   render() {
@@ -232,7 +228,7 @@ export default class editer extends Component {
                   <Text style={styles.btnText}>OK</Text>
                 </TouchableOpacity>
 
-                <TouchableOpacity style={[styles.buttonContainer, styles.btnCancel]} onPress={() => this.goBack()}>
+                <TouchableOpacity style={[styles.buttonContainer, styles.btnCancel]} onPress={() => this.props.navigation.goBack()}>
                   <Text style={styles.btnText}>Cancel</Text>
                 </TouchableOpacity>
               </View>

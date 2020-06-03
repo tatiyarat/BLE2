@@ -1,5 +1,4 @@
 import React, { Component,useState } from 'react';
-import { BluetoothStatus } from 'react-native-bluetooth-status';
 import BleManager from 'react-native-ble-manager';
 import {
   StyleSheet,
@@ -16,11 +15,9 @@ import { WebView } from 'react-native-webview';
 import AsyncStorage from '@react-native-community/async-storage';
 import moment from 'moment';
 var {height, width} = Dimensions.get('window');
-
 // BLE
 const BleManagerModule = NativeModules.BleManager;
 const bleManagerEmitter = new NativeEventEmitter(BleManagerModule);
-
 
 export default class  Menu extends Component {
   constructor(props) {
@@ -49,7 +46,6 @@ export default class  Menu extends Component {
       buffRSSI: -71,
       minChkInOut: -61,
       status:"...",
-      chkRescan: 1,
       modalVisible: false,
 
       firstname:'',
@@ -60,7 +56,7 @@ export default class  Menu extends Component {
       avatarSource: null,
       mobilenumber:'',
       trackerID:'',
-      isScaning:false,
+      isScanFound:false,
       isDetected:false,
     }
     this.handleDiscoverPeripheral = this.handleDiscoverPeripheral.bind(this);
@@ -128,23 +124,20 @@ export default class  Menu extends Component {
     });
     BleManager.enableBluetooth()
   }
-
-  componentWillUnmount() {
-    this.handleStopScan();
-    this.handlerDiscover.remove();
-    this.handlerStop.remove();
-    this.handlerDisconnect.remove();
-    this.handlerUpdate.remove();
-  }
   
   startScan() {
     BleManager.scan([], 15, true).then(() => {
       this.setState({status:"Start.."})
       this.setState({isDetected:false})
+      this.setState({isScanFound:false})
+    }).catch((error) => {
+      this.setState({status:"error "+error})
+      console.log(error);
     });
   } //startScan
 
   handleDiscoverPeripheral(peripheral) {
+    this.setState({isScanFound:true})
     this.setState({status:"Scanning.."})
     var canUpdate = 1
     if (typeof peripheral.name == "string" && peripheral.name.indexOf("Holy") >= 0) {
@@ -172,24 +165,24 @@ export default class  Menu extends Component {
   }
 
   handleStopScan() {
-   if (!this.state.isDetected) {
-      this.setState({cur_Location: this.state.def_Location})
-      this.setState({cur_Order: this.state.def_Order})
-      this.setState({cur_Message: this.state.def_Message})      
-      this.setState({cur_RSSI: this.state.def_RSSI})        
+    if (!this.state.isScanFound) {
+      this.setState({status:"Break.."})
+      setTimeout(() => {
+        this.startScan()
+      }, 10000);
+   } else {
+      if (!this.state.isDetected) {
+        this.setState({cur_Location: this.state.def_Location})
+        this.setState({cur_Order: this.state.def_Order})
+        this.setState({cur_Message: this.state.def_Message})      
+        this.setState({cur_RSSI: this.state.def_RSSI})        
+      }
+      this.setState({status:"Waiting.."})
+      this.startScan()
     }
-    this.setState({status:"Waiting.."})
-    this.startScan()
-    //setTimeout(() => {this.startScan()}, this.state.waitToScan);
   } //function
 
   setModalVisible = (visible) => {
-    if (visible) {
-      this.setState({chkRescan: 0})
-    } else {
-      this.setState({chkRescan: 1})
-    }
-    setTimeout(() => {BleManager.stopScan()}, 100);
     this.setState({ modalVisible: visible });
   }
 
@@ -319,7 +312,6 @@ export default class  Menu extends Component {
       <View  style={{ flexDirection: 'row', backgroundColor: '#BABABA',justifyContent:'center',}}>
           <View style={{margin:5,padding:10,width:"25%",alignSelf:'flex-start',alignItems:"center"}}>
             <TouchableOpacity  onPress={() => {
-                    BleManager.stopScan()
                     }}>
               <Image
                 style={{ 

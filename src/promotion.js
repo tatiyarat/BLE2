@@ -50,7 +50,7 @@ export default class  Menu extends Component {
       waitToScan: 2000,
       chkScanBLE: 0,
     
-      peripherals: new Map(),
+      //peripherals: new Map(),
       appState: '',
       btEnabled: false,
       minRSSI: -71,
@@ -73,8 +73,8 @@ export default class  Menu extends Component {
     }
     this.handleDiscoverPeripheral = this.handleDiscoverPeripheral.bind(this);
     this.handleStopScan = this.handleStopScan.bind(this);
-    this.handleUpdateValueForCharacteristic = this.handleUpdateValueForCharacteristic.bind(this);
-    this.handleDisconnectedPeripheral = this.handleDisconnectedPeripheral.bind(this);
+    //this.handleUpdateValueForCharacteristic = this.handleUpdateValueForCharacteristic.bind(this);
+    // this.handleDisconnectedPeripheral = this.handleDisconnectedPeripheral.bind(this);
     this.getUser = this.getUser.bind(this)
   } 
 
@@ -105,8 +105,8 @@ export default class  Menu extends Component {
 
     this.handlerDiscover = bleManagerEmitter.addListener('BleManagerDiscoverPeripheral', this.handleDiscoverPeripheral);
     this.handlerStop = bleManagerEmitter.addListener('BleManagerStopScan', this.handleStopScan);
-    this.handlerDisconnect = bleManagerEmitter.addListener('BleManagerDisconnectPeripheral', this.handleDisconnectedPeripheral);
-    this.handlerUpdate = bleManagerEmitter.addListener('BleManagerDidUpdateValueForCharacteristic', this.handleUpdateValueForCharacteristic);
+    // this.handlerDisconnect = bleManagerEmitter.addListener('BleManagerDisconnectPeripheral', this.handleDisconnectedPeripheral);
+    // this.handlerUpdate = bleManagerEmitter.addListener('BleManagerDidUpdateValueForCharacteristic', this.handleUpdateValueForCharacteristic);
 
     BleManager.start({ showAlert: true }).then(() => {console.log('Module initialized');});
 
@@ -127,6 +127,7 @@ export default class  Menu extends Component {
     }
     this.startScan()
   }
+
   onScreenFocus = () => {
     this.getUser().then((rep) => {
       this.setState({firstname:rep.firstname})
@@ -137,11 +138,10 @@ export default class  Menu extends Component {
       this.setState({avatarSource:rep.avatar})
       this.setState({mobilenumber:rep.tell})
       this.setState({trackerID:rep.trackerID})
-
     });
     BleManager.enableBluetooth()
     this.setState({chkRescan: 1})
-    BleManager.stopScan()
+    //BleManager.stopScan()
   }
 
   componentWillUnmount() {
@@ -159,68 +159,47 @@ export default class  Menu extends Component {
       this.setState({cur_Message: this.state.def_Message})      
       this.setState({cur_RSSI: this.state.def_RSSI})      
     }
+    /*
     this.setState({get_Location: ""})
     this.setState({get_Order: ""})
     this.setState({get_Message: ""})
     this.setState({get_RSSI: this.state.minRSSI})
+    */
     BleManager.scan([], this.state.timeToScan, true).then(() => {
-      this.setState({status:"Scanning.."})
+      this.setState({status:"Start.."})
     });
   } //startScan
 
   handleDiscoverPeripheral(peripheral) {
-    var peripherals = this.state.peripherals;
-    this.setState({chkScanBLE: 1});
+    this.setState({status:"Scanning.."})
+    var canUpdate = 1
     if (typeof peripheral.name == "string" && peripheral.name.indexOf("Holy") >= 0) {
-        peripherals.set(peripheral.id, peripheral);
-        this.setState({ peripherals });
-
-        var local_RSSI = peripheral.rssi
-        var local_Location = peripheral.name.split(":")[1]
-        var local_Order = peripheral.name.split(":")[2]
-        var local_Message = peripheral.name.split(":")[3]
-        var chk_RSSI = this.state.minRSSI
-        
-        if (local_RSSI > chk_RSSI) {
-            this.setState({ get_RSSI: local_RSSI});
-            this.setState({ get_Location: local_Location});
-            this.setState({ get_Order: local_Order});
-            this.setState({ get_Message: local_Message});
+        var local_RSSI      = peripheral.rssi
+        var local_Location  = peripheral.name.split(":")[1]
+        var local_Order     = peripheral.name.split(":")[2]
+        var local_Message   = peripheral.name.split(":")[3]
+        if (local_RSSI > this.state.minRSSI) {
             if ( (local_Location != this.state.cur_Location) || (local_Order != this.state.cur_Order) || (local_RSSI > this.state.cur_RSSI) ) {
-              if (local_Location == "CHKI" || local_Location =="CHKO") {
-                    if (local_RSSI > this.state.minChkInOut) {BleManager.stopScan()}                 
-              } else {
+              if ((local_Location == "CHKI" || local_Location == "CHKO") && local_RSSI < this.state.minChkInOut) {
+                canUpdate = 0;
+              }
+              if (canUpdate == 1) {
+                this.setState({ cur_RSSI: local_RSSI});
+                this.setState({ cur_Location: local_Location});
+                this.setState({ cur_Order: local_Order});
+                this.setState({ cur_Message: local_Message});
+                this.fetchdata('fast_pass',local_Location,local_Order,local_RSSI)
                 BleManager.stopScan()
               }
-            }
+            } // chk position
         }
     }
   }
 
   handleStopScan() {
-    if (this.state.chkScanBLE == 1 && this.state.chkRescan == 1) {
-      const {get_Location,get_Order,get_Message,get_RSSI,cur_Location,cur_Order,cur_Message,cur_RSSI} = this.state
-      if (get_Location == "" || get_Location == null) {
-        if (cur_Location != "000") {
-          this.setState({cur_Location: this.state.def_Location})
-          this.setState({cur_Order: this.state.def_Order})
-          this.setState({cur_Message: this.state.def_Message})      
-          this.setState({cur_RSSI: this.state.def_RSSI})      
-        }
-      } else if ((get_Location != cur_Location) || (cur_Order != get_Order) || (get_RSSI > cur_RSSI)) {
-          this.setState({cur_Location: get_Location})
-          this.setState({cur_Order: get_Order})
-          this.setState({cur_Message: get_Message})      
-          this.setState({cur_RSSI: get_RSSI})
-      }
-      this.fetchdata('fast_pass',cur_Location,cur_Order,cur_RSSI)
-    }
-    this.setState({ peripherals: new Map() })
-    this.setState({chkScanBLE: 0})
     this.setState({status:"Waiting.."})
-    if(this.state.chkRescan == 1) {
-      setTimeout(() => {this.startScan()}, this.state.waitToScan);
-    }
+    this.startScan()
+    //setTimeout(() => {this.startScan()}, this.state.waitToScan);
   } //function
 
   setModalVisible = (visible) => {
@@ -233,19 +212,19 @@ export default class  Menu extends Component {
     this.setState({ modalVisible: visible });
   }
 
-  handleUpdateValueForCharacteristic(data) {
-    console.log('Received data from ' + data.peripheral + ' characteristic ' + data.characteristic, data.value);
-  }
+  // handleUpdateValueForCharacteristic(data) {
+  //   console.log('Received data from ' + data.peripheral + ' characteristic ' + data.characteristic, data.value);
+  // }
   
-  handleDisconnectedPeripheral(data) {
-    let peripherals = this.state.peripherals;
-    let peripheral = peripherals.get(data.peripheral);
-    if (peripheral) {
-      peripheral.connected = false;
-      peripherals.set(peripheral.id, peripheral);
-      this.setState({ peripherals });
-    }
-  }
+  // handleDisconnectedPeripheral(data) {
+  //   let peripherals = this.state.peripherals;
+  //   let peripheral = peripherals.get(data.peripheral);
+  //   if (peripheral) {
+  //     peripheral.connected = false;
+  //     peripherals.set(peripheral.id, peripheral);
+  //     this.setState({ peripherals });
+  //   }
+  // }
 
 
 

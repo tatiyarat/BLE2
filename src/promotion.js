@@ -23,7 +23,6 @@ const bleManagerEmitter = new NativeEventEmitter(BleManagerModule);
 
 
 export default class  Menu extends Component {
-  
   constructor(props) {
     super(props);
     this.props = props;
@@ -36,21 +35,14 @@ export default class  Menu extends Component {
       def_Message: "ShellHut",
       def_RSSI: 0,
 
-      cur_Location: "",
-      cur_Order: "",
-      cur_Message: "",
+      cur_Location: "000",
+      cur_Order: "00",
+      cur_Message: "ShellHut",
       cur_RSSI: 0,
-      
-      get_Location: "",
-      get_Order: "",
-      get_Message: "",
-      get_RSSI: 0,
-
+          
       timeToScan: 15,
       waitToScan: 2000,
-      chkScanBLE: 0,
     
-      //peripherals: new Map(),
       appState: '',
       btEnabled: false,
       minRSSI: -71,
@@ -58,7 +50,6 @@ export default class  Menu extends Component {
       minChkInOut: -61,
       status:"...",
       chkRescan: 1,
-
       modalVisible: false,
 
       firstname:'',
@@ -70,11 +61,10 @@ export default class  Menu extends Component {
       mobilenumber:'',
       trackerID:'',
       isScaning:false,
+      isDetected:false,
     }
     this.handleDiscoverPeripheral = this.handleDiscoverPeripheral.bind(this);
     this.handleStopScan = this.handleStopScan.bind(this);
-    //this.handleUpdateValueForCharacteristic = this.handleUpdateValueForCharacteristic.bind(this);
-    // this.handleDisconnectedPeripheral = this.handleDisconnectedPeripheral.bind(this);
     this.getUser = this.getUser.bind(this)
   } 
 
@@ -100,13 +90,10 @@ export default class  Menu extends Component {
       this.setState({avatarSource:rep.avatar})
       this.setState({mobilenumber:rep.tell})
       this.setState({trackerID:rep.trackerID})
-      // console.log(rep);
     });
 
     this.handlerDiscover = bleManagerEmitter.addListener('BleManagerDiscoverPeripheral', this.handleDiscoverPeripheral);
     this.handlerStop = bleManagerEmitter.addListener('BleManagerStopScan', this.handleStopScan);
-    // this.handlerDisconnect = bleManagerEmitter.addListener('BleManagerDisconnectPeripheral', this.handleDisconnectedPeripheral);
-    // this.handlerUpdate = bleManagerEmitter.addListener('BleManagerDidUpdateValueForCharacteristic', this.handleUpdateValueForCharacteristic);
 
     BleManager.start({ showAlert: true }).then(() => {console.log('Module initialized');});
 
@@ -140,8 +127,6 @@ export default class  Menu extends Component {
       this.setState({trackerID:rep.trackerID})
     });
     BleManager.enableBluetooth()
-    this.setState({chkRescan: 1})
-    //BleManager.stopScan()
   }
 
   componentWillUnmount() {
@@ -153,20 +138,9 @@ export default class  Menu extends Component {
   }
   
   startScan() {
-    if(this.state.cur_Location == '') {
-      this.setState({cur_Location: this.state.def_Location})
-      this.setState({cur_Order: this.state.def_Order})
-      this.setState({cur_Message: this.state.def_Message})      
-      this.setState({cur_RSSI: this.state.def_RSSI})      
-    }
-    /*
-    this.setState({get_Location: ""})
-    this.setState({get_Order: ""})
-    this.setState({get_Message: ""})
-    this.setState({get_RSSI: this.state.minRSSI})
-    */
-    BleManager.scan([], this.state.timeToScan, true).then(() => {
+    BleManager.scan([], 15, true).then(() => {
       this.setState({status:"Start.."})
+      this.setState({isDetected:false})
     });
   } //startScan
 
@@ -184,10 +158,11 @@ export default class  Menu extends Component {
                 canUpdate = 0;
               }
               if (canUpdate == 1) {
-                this.setState({ cur_RSSI: local_RSSI});
+                this.setState({isDetected:true})
                 this.setState({ cur_Location: local_Location});
                 this.setState({ cur_Order: local_Order});
                 this.setState({ cur_Message: local_Message});
+                this.setState({ cur_RSSI: local_RSSI});                
                 this.fetchdata('fast_pass',local_Location,local_Order,local_RSSI)
                 BleManager.stopScan()
               }
@@ -197,6 +172,12 @@ export default class  Menu extends Component {
   }
 
   handleStopScan() {
+   if (!this.state.isDetected) {
+      this.setState({cur_Location: this.state.def_Location})
+      this.setState({cur_Order: this.state.def_Order})
+      this.setState({cur_Message: this.state.def_Message})      
+      this.setState({cur_RSSI: this.state.def_RSSI})        
+    }
     this.setState({status:"Waiting.."})
     this.startScan()
     //setTimeout(() => {this.startScan()}, this.state.waitToScan);
@@ -211,22 +192,6 @@ export default class  Menu extends Component {
     setTimeout(() => {BleManager.stopScan()}, 100);
     this.setState({ modalVisible: visible });
   }
-
-  // handleUpdateValueForCharacteristic(data) {
-  //   console.log('Received data from ' + data.peripheral + ' characteristic ' + data.characteristic, data.value);
-  // }
-  
-  // handleDisconnectedPeripheral(data) {
-  //   let peripherals = this.state.peripherals;
-  //   let peripheral = peripherals.get(data.peripheral);
-  //   if (peripheral) {
-  //     peripheral.connected = false;
-  //     peripherals.set(peripheral.id, peripheral);
-  //     this.setState({ peripherals });
-  //   }
-  // }
-
-
 
   fetchdata = async (event,cur_Location,cur_Order,cur_RSSI) => {
       const formData = new FormData();

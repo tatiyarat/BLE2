@@ -188,20 +188,19 @@ export default class  Menu extends Component {
 
   fetchdata = async (event,cur_Location,cur_Order,cur_RSSI) => {
       const formData = new FormData();
-      const {cur_Message,minChkInOut} = this.state
       formData.append("t_id", this.state.trackerID);
       formData.append("s_id", cur_Location);
       formData.append("s_zone", cur_Order);
       formData.append("date", moment().format('YYYY/MM/DD,HH:mm'));
       formData.append("event", event);
-        const serviceResponse= fetch('http://192.168.101.201/reciveLog.php',
+        const serviceResponse = fetch('http://192.168.101.201/reciveLog.php',
         {
           method: 'POST',
           body: formData,
         })
         .then((serviceResponse) => { 
           })
-        .catch((error) => console.warn("fetch error:", error))
+        .catch((error) => console.log("fetch error:", error))
         .then((serviceResponse) => { 
         });
  
@@ -252,7 +251,7 @@ export default class  Menu extends Component {
           transparent={true}
           visible={modalVisible}
           onRequestClose={() => {
-            Alert.alert("Modal has been closed.");
+            this.setModalVisible(!modalVisible)
           }}
         >
           <View style={styles.centeredView}>
@@ -267,7 +266,7 @@ export default class  Menu extends Component {
               </View>
               <View style={{flexDirection: 'row'}}>
                 <TouchableOpacity
-                  style={{ ...styles.openButton, backgroundColor: "#08CC3B",justifyContent:'center', }}
+                  style={{ ...styles.openButton, backgroundColor: "#08CC3B",justifyContent:'center',}}
                   onPress={() => {
                     if (cur_Location != "000" && cur_RSSI > minChkInOut) {
                       this.fetchdatachk('chk_in',cur_Location,cur_Order,cur_RSSI);
@@ -322,7 +321,6 @@ export default class  Menu extends Component {
                 source={{uri:'http://192.168.101.201/'+cur_Location+'/logo/default.png'}}
               />
             </TouchableOpacity>
-           
              <Text>{cur_Message}</Text>
           </View>
         <View style={{justifyContent:'center',alignItems: 'center',width:"50%",textAlign: 'center',alignSelf :"center"}}>

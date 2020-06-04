@@ -177,7 +177,6 @@ export default class  Menu extends Component {
         this.setState({cur_Message: this.state.def_Message})      
         this.setState({cur_RSSI: this.state.def_RSSI})        
       }
-      this.setState({status:"Waiting.."})
       this.startScan()
     }
   } //function

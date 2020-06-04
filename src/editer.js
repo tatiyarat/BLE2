@@ -16,8 +16,8 @@ import ImagePicker from 'react-native-image-picker';
 import AsyncStorage from '@react-native-community/async-storage';
 import {Picker} from '@react-native-community/picker';
 var DirectSms = NativeModules.DirectSms;
-
-
+import RNFS from 'react-native-fs';
+import axios from 'axios';
 import ProfileCardView from './compoment/verfiyphonediter';
 // import ProfileCardView from './compoment/verfiyphone'
 export default class editer extends Component {
@@ -40,6 +40,7 @@ export default class editer extends Component {
       type:null,
       name:null,
       source64:null,
+      buffermobilenumber:null,
     }
     this.handleShowImage = this.handleShowImage.bind(this)
   }
@@ -71,6 +72,7 @@ export default class editer extends Component {
       this.setState({email:rep.email})
       this.setState({avatarSource:rep.avatar})
       this.setState({mobilenumber:rep.tell})
+      this.setState({buffermobilenumber:rep.tell})
       this.setState({trackerID:rep.trackerID})
       console.log(rep);
     });
@@ -78,21 +80,77 @@ export default class editer extends Component {
 
 
   handleSignUp () {
-    // console.log(this.state);
-    if(this.state.firstname === null || this.state.firstname == ""){
-      Alert.alert("ผิดพลาด", "โปรดกรอก ชื่อ");
-    }else if(this.state.lastname === null || this.state.lastname == ''){
-      Alert.alert("ผิดพลาด", "โปรดกรอก นามสกุล");
-    }else if(this.state.email === null || this.state.email == ''){
-      Alert.alert("ผิดพลาด", "โปรดกรอก อีเมล์");
-    }else if(this.state.avatarSource === null || this.state.avatarSource == ''){
-      Alert.alert("ผิดพลาด", "โปรดกรอกใส่รูปภาพ");
-    }else if(this.state.mobilenumber === null || this.state.mobilenumber == ''){
-      Alert.alert("ผิดพลาด", "โปรดกรอก เบอร์มือถือ");
+    if(this.state.buffermobilenumber === this.state.mobilenumber){
+      this.storeData()
     }else{
-      this.setState({showImage:false})
+      if(this.state.firstname === null || this.state.firstname == ""){
+        Alert.alert("ผิดพลาด", "โปรดกรอก ชื่อ");
+      }else if(this.state.lastname === null || this.state.lastname == ''){
+        Alert.alert("ผิดพลาด", "โปรดกรอก นามสกุล");
+      }else if(this.state.email === null || this.state.email == ''){
+        Alert.alert("ผิดพลาด", "โปรดกรอก อีเมล์");
+      }else if(this.state.avatarSource === null || this.state.avatarSource == ''){
+        Alert.alert("ผิดพลาด", "โปรดกรอกใส่รูปภาพ");
+      }else if(this.state.mobilenumber === null || this.state.mobilenumber == ''){
+        Alert.alert("ผิดพลาด", "โปรดกรอก เบอร์มือถือ");
+      }else{
+        this.setState({showImage:false})
+      }
+    }
+    // console.log(this.state);
+  }
+  storeData = async () => {
+    try {
+      const data = {
+        firstname: this.state.firstname,
+        lastname: this.state.lastname,
+        gender: this.state.gender,
+        old: this.state.old,
+        tell: this.state.mobilenumber,
+        email: this.state.email,
+        trackerID: this.state.trackerID,
+        avatar:this.state.avatarSource,
+    }
+      const jsonValue = JSON.stringify(data)
+      await AsyncStorage.setItem('datakey', jsonValue)
+      this.fetchdata()
+    } catch (e) {
+      // saving error
+      console.log('saving error');
     }
   }
+  fetchdata = async () => {
+    //===============================================================================
+          var data = await RNFS.readFile( this.state.avatarSource.uri, 'base64').then(res => { return res });
+          
+          const formData = new FormData();
+          formData.append("Tracker_ID", this.state.trackerID);
+          formData.append("name", this.state.firstname);
+          formData.append("sirname",this.state.lastname);
+          formData.append("old", this.state.old);
+          formData.append("gender", this.state.gender);
+          formData.append("email", this.state.email);
+          formData.append("mobile",  this.state.mobilenumber);
+          formData.append("Tmp_Tracker_ID", this.state.trackerID);
+          formData.append("type",'image/jpg');
+          formData.append("base64",data);
+
+          // console.log(formData);
+          axios.post('http://192.168.101.201/UpdateUser.php', formData, {
+            headers: {
+            'accept': 'application/json',
+            'Content-Type': `multipart/form-data`
+            }
+            }
+            ).then(res => {
+            console.log(res);
+            this.props.navigation.navigate('Craigslist');
+            })
+            .catch(err => {
+            console.log(err.message);
+            });
+    //===============================================================================
+        }
 
   selectPhotoTapped() {
     const options = {
@@ -224,12 +282,12 @@ export default class editer extends Component {
               </View>
 
               <View style={{flexDirection: 'row',}}>
-                <TouchableOpacity style={[styles.buttonContainer, styles.loginButton]} onPress={() => this.handleSignUp()}>
-                  <Text style={styles.btnText}>OK</Text>
-                </TouchableOpacity>
-
                 <TouchableOpacity style={[styles.buttonContainer, styles.btnCancel]} onPress={() => this.props.navigation.goBack()}>
                   <Text style={styles.btnText}>Cancel</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity style={[styles.buttonContainer, styles.loginButton]} onPress={() => this.handleSignUp()}>
+                  <Text style={styles.btnText}>OK</Text>
                 </TouchableOpacity>
               </View>
               
@@ -340,21 +398,20 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom:20,
-    width:150,
+    width:100,
     borderRadius:30,
     backgroundColor:'transparent'
   },
   btnCancel: {
     backgroundColor: "#F39B2A",
-
     shadowColor: "#808080",
     shadowOffset: {
       width: 0,
       height: 9,
     },
+    marginRight:32,
     shadowOpacity: 0.50,
     shadowRadius: 12.35,
-
     elevation: 19,
   },
   loginButton: {

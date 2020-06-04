@@ -65,20 +65,20 @@ export default class ProfileCardView extends Component {
   fetchdata = async () => {
     //===============================================================================
           var data = await RNFS.readFile( this.props.avatar.uri, 'base64').then(res => { return res });
+          
           const formData = new FormData();
           formData.append("Tracker_ID", this.props.trackerID);
           formData.append("name", this.props.fname);
           formData.append("sirname",this.props.lname);
-          formData.append("old",this.props.old);
-          formData.append("gender",this.props.gender);
+          formData.append("old", this.props.old);
+          formData.append("gender", this.props.gender);
           formData.append("email", this.props.email);
           formData.append("mobile",  this.props.mobilenumber);
           formData.append("Tmp_Tracker_ID", this.props.trackerID);
           formData.append("type",'image/jpg');
           formData.append("base64",data);
-          // console.log(formData);
-          
 
+          // console.log(formData);
           axios.post('http://192.168.101.201/UpdateUser.php', formData, {
             headers: {
             'accept': 'application/json',
@@ -125,12 +125,12 @@ export default class ProfileCardView extends Component {
 
 
 verifypassword () {
-  Alert.alert("รหัสถูกต้อง", "ถูกต้องนะครับบบบบบ ",[{text: "OK", onPress: () =>this.buttonPress()}]);
+  Alert.alert("รหัสถูกต้อง", "ถูกต้องนะครับ แก้ไขเรียบร้อย",[{text: "OKAY", onPress: () =>this.buttonPress()}]);
   // if(this.state.code !== null && this.state.code !== ''){
   //   if(this.state.SMS4ditgit === this.state.code){
        
   //   }else{
-  //       Alert.alert("รหัสผิดพลาด", "รหัสไม่ถูกต้องน่ะครับบบบ");
+  //       Alert.alert("รหัสผิดพลาด", "รหัสไม่ถูกต้องน่ะครับ");
   //   }
   // }else{
   //       Alert.alert("ผิดพลาด", "โปรดกรอกรหัสยืนยันตัวตน");
@@ -167,6 +167,7 @@ verifypassword () {
             </View>
 
             <View style={styles.buttonContainer}>
+
                 <TouchableOpacity style={[styles.button, styles.buttonMessage]} 
                 onPress={() => this.sendDirectSms()}
                 >

@@ -14,6 +14,7 @@ import {
 import { WebView } from 'react-native-webview';
 import AsyncStorage from '@react-native-community/async-storage';
 import moment from 'moment';
+import { BluetoothStatus } from 'react-native-bluetooth-status';
 var {height, width} = Dimensions.get('window');
 // BLE
 const BleManagerModule = NativeModules.BleManager;
@@ -30,13 +31,13 @@ export default class  Menu extends Component {
       def_Location: "000",
       def_Order: "00",
       def_Message: "ShellHut",
-      def_RSSI: 0,
+      def_RSSI: -100,
 
       cur_Location: "000",
       cur_Order: "00",
       cur_Message: "ShellHut",
-      cur_RSSI: 0,
-          
+      cur_RSSI: -100,
+      
       timeToScan: 15,
       waitToScan: 2000,
     
@@ -126,18 +127,15 @@ export default class  Menu extends Component {
   }
   
   startScan() {
-    BleManager.scan([], 15, true).then(() => {
+    BleManager.scan([], 30, true).then(() => {
       this.setState({status:"Start.."})
-      this.setState({isDetected:false})
       this.setState({isScanFound:false})
     }).catch((error) => {
       this.setState({status:"error "+error})
-      console.log(error);
     });
   } //startScan
 
   handleDiscoverPeripheral(peripheral) {
-    this.setState({isScanFound:true})
     this.setState({status:"Scanning.."})
     var canUpdate = 1
     if (typeof peripheral.name == "string" && peripheral.name.indexOf("Holy") >= 0) {
@@ -146,39 +144,33 @@ export default class  Menu extends Component {
         var local_Order     = peripheral.name.split(":")[2]
         var local_Message   = peripheral.name.split(":")[3]
         if (local_RSSI > this.state.minRSSI) {
+            this.setState({isScanFound:true})
             if ( (local_Location != this.state.cur_Location) || (local_Order != this.state.cur_Order) || (local_RSSI > this.state.cur_RSSI) ) {
               if ((local_Location == "CHKI" || local_Location == "CHKO") && local_RSSI < this.state.minChkInOut) {
                 canUpdate = 0;
               }
               if (canUpdate == 1) {
-                this.setState({isDetected:true})
+                if (local_Location != this.state.cur_Location) {
+                  this.fetchdata('fast_pass',local_Location,local_Order,local_RSSI)
+                }                
                 this.setState({ cur_Location: local_Location});
                 this.setState({ cur_Order: local_Order});
                 this.setState({ cur_Message: local_Message});
                 this.setState({ cur_RSSI: local_RSSI});                
-                this.fetchdata('fast_pass',local_Location,local_Order,local_RSSI)
-                BleManager.stopScan()
               }
             } // chk position
         }
     }
   }
 
-  handleStopScan() {
-    if (!this.state.isScanFound) {
-      this.setState({status:"Break.."})
-      setTimeout(() => {
-        this.startScan()
-      }, 10000);
-   } else {
-      if (!this.state.isDetected) {
-        this.setState({cur_Location: this.state.def_Location})
-        this.setState({cur_Order: this.state.def_Order})
-        this.setState({cur_Message: this.state.def_Message})      
-        this.setState({cur_RSSI: this.state.def_RSSI})        
-      }
-      this.startScan()
+  handleStopScan = async () => {
+    if (!this.isScanFound) {
+      this.setState({ cur_Location: this.state.def_Location});
+      this.setState({ cur_Order: this.state.def_Order});
+      this.setState({ cur_Message: this.state.def_Message});
+      this.setState({ cur_RSSI: this.state.def_RSSI});
     }
+    this.startScan()
   } //function
 
   setModalVisible = (visible) => {
@@ -349,7 +341,7 @@ export default class  Menu extends Component {
             </TouchableOpacity>
         </View>
       </View>
-      <WebView source={{ uri: 'http://192.168.101.201/'+cur_Location+'?'+date.getTime()}} />
+      <WebView source={{ uri: 'http://192.168.101.201/'+cur_Location}} />
       <View style={{flexDirection: 'row', backgroundColor: '#E0E0E0',justifyContent:'center'}}>
           <View style={{ flexDirection: 'row',alignItems:'center',justifyContent:'center',padding:1,width:'20%'}}>
               <Text>{this.state.status}</Text>

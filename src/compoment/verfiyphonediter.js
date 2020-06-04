@@ -39,7 +39,7 @@ export default class ProfileCardView extends Component {
     console.log("MyApp", "Generated Password : " + generatedPassword);
   }
   buttonPress () {
-     this.storeData()
+    this.fetchdata()
   }
 
   storeData = async () => {
@@ -56,7 +56,7 @@ export default class ProfileCardView extends Component {
     }
       const jsonValue = JSON.stringify(data)
       await AsyncStorage.setItem('datakey', jsonValue)
-      this.fetchdata()
+      this.props.nav.navigate('Craigslist');
     } catch (e) {
       // saving error
       console.log('saving error');
@@ -87,7 +87,7 @@ export default class ProfileCardView extends Component {
             }
             ).then(res => {
             console.log(res);
-            this.props.nav.navigate('Craigslist');
+            this.storeData()
             })
             .catch(err => {
             console.log(err.message);
@@ -128,7 +128,7 @@ verifypassword () {
   Alert.alert("รหัสถูกต้อง", "ถูกต้องนะครับ แก้ไขเรียบร้อย",[{text: "OKAY", onPress: () =>this.buttonPress()}]);
   // if(this.state.code !== null && this.state.code !== ''){
   //   if(this.state.SMS4ditgit === this.state.code){
-       
+  //       Alert.alert("รหัสถูกต้อง", "ถูกต้องนะครับ แก้ไขเรียบร้อย",[{text: "OKAY", onPress: () =>this.buttonPress()}]);
   //   }else{
   //       Alert.alert("รหัสผิดพลาด", "รหัสไม่ถูกต้องน่ะครับ");
   //   }

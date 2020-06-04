@@ -43,7 +43,7 @@ export default class ProfileCardView extends Component {
     console.log("MyApp", "Generated Password : " + generatedPassword);
   }
   buttonPress () {
-     this.storeData()
+    this.fetchdata()
   }
 
   storeData = async () => {
@@ -58,10 +58,9 @@ export default class ProfileCardView extends Component {
         trackerID: this.state.trackerID,
         avatar:this.props.avatar,
     }
-   
       const jsonValue = JSON.stringify(data)
       await AsyncStorage.setItem('datakey', jsonValue)
-      this.fetchdata()
+      this.props.nav.navigate('Craigslist');
     } catch (e) {
       console.log('saving error');
     }
@@ -82,8 +81,7 @@ export default class ProfileCardView extends Component {
           formData.append("type",this.props.type);
           formData.append("data64",data64)
          
-   
-      
+
             axios.post('http://192.168.101.201/CreateUser.php', formData, {
               headers: {
               'accept': 'application/json',
@@ -92,7 +90,7 @@ export default class ProfileCardView extends Component {
               }
               ).then(res => {
               console.log(res);
-              this.props.nav.navigate('Craigslist');
+              this.storeData()
               })
               .catch(err => {
               console.log(err.message);
@@ -140,10 +138,7 @@ convermobile2trackerID(){
     str1 = str1.replace(/7/g, "H");
     str1 = str1.replace(/8/g, "I");
     str1 = str1.replace(/9/g, "J");
-    // this.state.trackerID = str1;
     this.setState({trackerID:str1});
-    
-    // console.log(this.state.trackerID+"trackerID");
 }
 
 async verifypassword () {
@@ -151,13 +146,12 @@ async verifypassword () {
   Alert.alert("รหัสถูกต้อง:\n"+this.state.trackerID, "ถูกต้องนะครับบบบบบ ",[{text: "OK", onPress: () =>this.buttonPress()}]);
   // if(this.state.code !== null && this.state.code !== ''){
   //   if(this.state.SMS4ditgit === this.state.code){
-  //       await this.convermobile2trackerID();
-       
+     
   //   }else{
   //       Alert.alert("รหัสผิดพลาด", "รหัสไม่ถูกต้องน่ะครับบบบ");
   //   }
   // }else{
-  //       Alert.alxert("ผิดพลาด", "โปรดกรอกรหัสยืนยันตัวตน");
+  //       Alert.alert("ผิดพลาด", "โปรดกรอกรหัสยืนยันตัวตน");
   //   }
 }
 
@@ -175,7 +169,6 @@ async verifypassword () {
                     ) : (
                       <Image style={styles.profileImage} source={this.props.avatar} />
                   )}
-                
                 <Text style={styles.name}>{this.props.fname} {this.props.lname}</Text>
                 <Text style={styles.subname}>จะได้รับรหัสยืนยันผ่านระบบ SMS </Text>
                 <Text style={{ fontSize:14,color:'#1E90FF',marginBottom:20,}}>จากเบอร์โทรศัพท์  {this.props.phone}</Text>

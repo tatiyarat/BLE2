@@ -48,16 +48,16 @@ export default class register extends Component {
   }
   handleSignUp () {
     // console.log(this.state);
-    if(this.state.firstname === null || this.state.firstname == ""){
+    if(this.state.avatarSource === null || this.state.avatarSource == ''){
+      Alert.alert("ผิดพลาด", "โปรดกรอกใส่รูปภาพ");
+    }else if(this.state.mobilenumber === null || this.state.mobilenumber == ''){
+      Alert.alert("ผิดพลาด", "โปรดกรอก เบอร์มือถือ");
+    }else if(this.state.firstname === null || this.state.firstname == ""){
       Alert.alert("ผิดพลาด", "โปรดกรอก ชื่อ");
     }else if(this.state.lastname === null || this.state.lastname == ''){
       Alert.alert("ผิดพลาด", "โปรดกรอก นามสกุล");
     }else if(this.state.email === null || this.state.email == ''){
       Alert.alert("ผิดพลาด", "โปรดกรอก อีเมล์");
-    }else if(this.state.avatarSource === null || this.state.avatarSource == ''){
-      Alert.alert("ผิดพลาด", "โปรดกรอกใส่รูปภาพ");
-    }else if(this.state.mobilenumber === null || this.state.mobilenumber == ''){
-      Alert.alert("ผิดพลาด", "โปรดกรอก เบอร์มือถือ");
     }else{
       // console.log(this.state);
       this.setState({showImage:false})

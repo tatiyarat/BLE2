@@ -81,18 +81,18 @@ export default class editer extends Component {
 
   handleSignUp () {
     if(this.state.buffermobilenumber === this.state.mobilenumber){
-      this.storeData()
+      this.fetchdata()
     }else{
-      if(this.state.firstname === null || this.state.firstname == ""){
+      if(this.state.avatarSource === null || this.state.avatarSource == ''){
+        Alert.alert("ผิดพลาด", "โปรดกรอกใส่รูปภาพ");
+      }else if(this.state.mobilenumber === null || this.state.mobilenumber == ''){
+        Alert.alert("ผิดพลาด", "โปรดกรอก เบอร์มือถือ");
+      }else if(this.state.firstname === null || this.state.firstname == ""){
         Alert.alert("ผิดพลาด", "โปรดกรอก ชื่อ");
       }else if(this.state.lastname === null || this.state.lastname == ''){
         Alert.alert("ผิดพลาด", "โปรดกรอก นามสกุล");
       }else if(this.state.email === null || this.state.email == ''){
         Alert.alert("ผิดพลาด", "โปรดกรอก อีเมล์");
-      }else if(this.state.avatarSource === null || this.state.avatarSource == ''){
-        Alert.alert("ผิดพลาด", "โปรดกรอกใส่รูปภาพ");
-      }else if(this.state.mobilenumber === null || this.state.mobilenumber == ''){
-        Alert.alert("ผิดพลาด", "โปรดกรอก เบอร์มือถือ");
       }else{
         this.setState({showImage:false})
       }
@@ -113,15 +113,15 @@ export default class editer extends Component {
     }
       const jsonValue = JSON.stringify(data)
       await AsyncStorage.setItem('datakey', jsonValue)
-      this.fetchdata()
+      this.props.navigation.navigate('Craigslist');
     } catch (e) {
-      // saving error
       console.log('saving error');
     }
   }
   fetchdata = async () => {
     //===============================================================================
           var data = await RNFS.readFile( this.state.avatarSource.uri, 'base64').then(res => { return res });
+          // console.log(data);
           
           const formData = new FormData();
           formData.append("Tracker_ID", this.state.trackerID);
@@ -144,7 +144,7 @@ export default class editer extends Component {
             }
             ).then(res => {
             console.log(res);
-            this.props.navigation.navigate('Craigslist');
+            this.storeData()
             })
             .catch(err => {
             console.log(err.message);

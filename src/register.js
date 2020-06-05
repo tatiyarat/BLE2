@@ -47,7 +47,6 @@ export default class register extends Component {
     this.props.navigation.navigate('Craigslist');
   }
   handleSignUp () {
-    // console.log(this.state);
     if(this.state.avatarSource === null || this.state.avatarSource == ''){
       Alert.alert("ผิดพลาด", "โปรดกรอกใส่รูปภาพ");
     }else if(this.state.mobilenumber === null || this.state.mobilenumber == ''){
@@ -59,7 +58,6 @@ export default class register extends Component {
     }else if(this.state.email === null || this.state.email == ''){
       Alert.alert("ผิดพลาด", "โปรดกรอก อีเมล์");
     }else{
-      // console.log(this.state);
       this.setState({showImage:false})
     }
   }

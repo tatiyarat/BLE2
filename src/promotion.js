@@ -32,11 +32,22 @@ export default class  Menu extends Component {
       def_Order: "00",
       def_Message: "ShellHut",
       def_RSSI: -100,
+      def_typeEvent: "",
 
       cur_Location: "000",
       cur_Order: "00",
       cur_Message: "ShellHut",
       cur_RSSI: -100,
+      cur_typeEvent: "",
+
+      get_Location: "",
+      get_Order: "",
+      get_Message: "",
+      get_RSSI: -100,
+      get_typeEvent: "",
+
+      isFetchData:false,
+      isScanFound:false,
       
       timeToScan: 15,
       waitToScan: 2000,
@@ -57,8 +68,6 @@ export default class  Menu extends Component {
       avatarSource: null,
       mobilenumber:'',
       trackerID:'',
-      isScanFound:false,
-      isDetected:false,
     }
     this.handleDiscoverPeripheral = this.handleDiscoverPeripheral.bind(this);
     this.handleStopScan = this.handleStopScan.bind(this);
@@ -110,6 +119,89 @@ export default class  Menu extends Component {
       });
     }
     this.startScan()
+    this.uploadDataToServer()
+  }
+  
+  startScan() {
+    BleManager.scan([], 60, true).then(() => {
+      this.setState({status:"Start.."})
+      this.setState({isScanFound:false})
+    }).catch((error) => {
+      this.setState({status:"error "+error})
+    });
+  } //startScan
+
+  handleDiscoverPeripheral(device) {
+    this.setState({status:"Scanning.."})
+    var canUpdate = 1
+    if (typeof device.name == "string" && device.name.indexOf("Holy") >= 0) {
+        var local_RSSI      = device.rssi
+        var local_Location  = device.name.split(":")[1]
+        var local_Order     = device.name.split(":")[2]
+        var local_Message   = device.name.split(":")[3]
+        if (local_RSSI > this.state.minRSSI) {
+            this.setState({isScanFound:true})
+            if ( (local_Location != this.state.get_Location) || (local_Order != this.state.get_Order) || (local_RSSI > this.state.get_RSSI) ) {
+              var typeEvent = "fast_pass"
+              if (local_Location == "CHKI" || local_Location == "CHKO") {
+                if (local_RSSI > this.state.minChkInOut) {
+                  if (local_Location == "CHKI") typeEvent = "check_in"
+                  if (local_Location == "CHKO") typeEvent = "check_out"
+                } else {
+                  canUpdate = 0;
+                }
+              }
+              if (canUpdate == 1) {
+                // while (this.state.isFetchData) {
+                // }
+                this.setState({ get_Location: local_Location});
+                this.setState({ get_Order: local_Order});
+                this.setState({ get_Message: local_Message});
+                this.setState({ get_RSSI: local_RSSI});
+                this.setState({ get_typeEvent: typeEvent});
+              }
+            } // chk position
+        }
+    }
+  }
+
+  handleStopScan = async () => {
+    const { def_Location,def_Order,def_Message,def_RSSI} = this.state;
+    if (!this.isScanFound) {
+      this.setState({ cur_Location: def_Location});
+      this.setState({ cur_Order: def_Order});
+      this.setState({ cur_Message:def_Message});
+      this.setState({ cur_RSSI: def_RSSI});
+      this.setState({ get_Location: def_Location});
+      this.setState({ get_Order: def_Order});
+      this.setState({ get_Message: def_Message});
+      this.setState({ get_RSSI: def_RSSI});
+    }
+    this.setState({isScanFound:false})
+    this.startScan()
+  } //function
+
+  uploadDataToServer() {
+    const { get_typeEvent,get_RSSI,get_Order,get_Message,get_Location,cur_RSSI,cur_Location,cur_typeEvent,cur_Order, } = this.state;
+    if (get_Location != cur_Location) {
+      this.setState({ isFetchData: true });
+      this.setState({status:"Upload.."})
+      this.setState({ cur_Location: get_Location});
+      this.setState({ cur_Order: get_Order});
+      this.setState({ cur_Message: get_Message});
+      this.setState({ cur_RSSI: get_RSSI});
+      this.setState({ cur_typeEvent: get_typeEvent});  
+      this.setState({ isFetchData: false });
+      this.fetchdata(cur_typeEvent,cur_Location,cur_Order,cur_RSSI);
+      console.log("Fetch = "+cur_Location+" : "+cur_Order);
+    }
+    setTimeout(() => {
+      this.uploadDataToServer()
+    }, 1000);
+  }
+
+  setModalVisible = (visible) => {
+    this.setState({ modalVisible: visible });
   }
 
   onScreenFocus = () => {
@@ -125,79 +217,8 @@ export default class  Menu extends Component {
     });
     BleManager.enableBluetooth()
   }
-  
-  startScan() {
-    BleManager.scan([], 30, true).then(() => {
-      this.setState({status:"Start.."})
-      this.setState({isScanFound:false})
-    }).catch((error) => {
-      this.setState({status:"error "+error})
-    });
-  } //startScan
-
-  handleDiscoverPeripheral(peripheral) {
-    this.setState({status:"Scanning.."})
-    var canUpdate = 1
-    if (typeof peripheral.name == "string" && peripheral.name.indexOf("Holy") >= 0) {
-        var local_RSSI      = peripheral.rssi
-        var local_Location  = peripheral.name.split(":")[1]
-        var local_Order     = peripheral.name.split(":")[2]
-        var local_Message   = peripheral.name.split(":")[3]
-        if (local_RSSI > this.state.minRSSI) {
-            this.setState({isScanFound:true})
-            if ( (local_Location != this.state.cur_Location) || (local_Order != this.state.cur_Order) || (local_RSSI > this.state.cur_RSSI) ) {
-              if ((local_Location == "CHKI" || local_Location == "CHKO") && local_RSSI < this.state.minChkInOut) {
-                canUpdate = 0;
-              }
-              if (canUpdate == 1) {
-                if (local_Location != this.state.cur_Location) {
-                  this.fetchdata('fast_pass',local_Location,local_Order,local_RSSI)
-                }                
-                this.setState({ cur_Location: local_Location});
-                this.setState({ cur_Order: local_Order});
-                this.setState({ cur_Message: local_Message});
-                this.setState({ cur_RSSI: local_RSSI});                
-              }
-            } // chk position
-        }
-    }
-  }
-
-  handleStopScan = async () => {
-    if (!this.isScanFound) {
-      this.setState({ cur_Location: this.state.def_Location});
-      this.setState({ cur_Order: this.state.def_Order});
-      this.setState({ cur_Message: this.state.def_Message});
-      this.setState({ cur_RSSI: this.state.def_RSSI});
-    }
-    this.startScan()
-  } //function
-
-  setModalVisible = (visible) => {
-    this.setState({ modalVisible: visible });
-  }
 
   fetchdata = async (event,cur_Location,cur_Order,cur_RSSI) => {
-      const formData = new FormData();
-      formData.append("t_id", this.state.trackerID);
-      formData.append("s_id", cur_Location);
-      formData.append("s_zone", cur_Order);
-      formData.append("date", moment().format('YYYY/MM/DD,HH:mm'));
-      formData.append("event", event);
-        const serviceResponse = fetch('http://192.168.101.201/reciveLog.php',
-        {
-          method: 'POST',
-          body: formData,
-        })
-        .then((serviceResponse) => { 
-          })
-        .catch((error) => console.log("fetch error:", error))
-        .then((serviceResponse) => { 
-        });
- 
-      }
-
-  fetchdatachk = async (event,cur_Location,cur_Order,cur_RSSI) => {
 
     const formData = new FormData();
     const {cur_Message,minChkInOut} = this.state
@@ -213,11 +234,10 @@ export default class  Menu extends Component {
         body: formData,
       })
       .then((serviceResponse) => { 
-          if (event == 'chk_out') {
+          if (event == 'check_out') {
             Alert.alert("Check-Out: ลงเวลาออก","คุณ "+this.state.firstname+" "+this.state.lastname +"\nที่จุด ["+cur_Location+"] "+cur_Message+"\nณ วันที่ "+moment().format('DD/MM/YYYY, HH:mm'),[{text: "OK", onPress: () => this.setModalVisible(false)}])
-          } else if (event == 'chk_in'){
+          } else if (event == 'check_in'){
             Alert.alert("Check-In: ลงเวลาเข้า","คุณ "+this.state.firstname+" "+this.state.lastname +"\nที่จุด ["+cur_Location+"] "+cur_Message+"\nณ วันที่ "+moment().format('DD/MM/YYYY, HH:mm'),[{text: "OK", onPress: () => this.setModalVisible(false)}])
-            
           } else {
             // FAST-PASS event
           }        
@@ -234,7 +254,7 @@ export default class  Menu extends Component {
 
   render() {
   const date = new Date();
-  const { modalVisible,cur_Location,cur_Message,cur_Order,cur_RSSI,firstname,lastname,avatarSource,minChkInOut } = this.state;
+  const { modalVisible,cur_Location,cur_Message,cur_Order,cur_RSSI,firstname,lastname,avatarSource,minChkInOut,status } = this.state;
     return(
       <>
         <Modal
@@ -260,7 +280,7 @@ export default class  Menu extends Component {
                   style={{ ...styles.openButton, backgroundColor: "#08CC3B",justifyContent:'center',}}
                   onPress={() => {
                     if (cur_Location != "000" && cur_RSSI > minChkInOut) {
-                      this.fetchdatachk('chk_in',cur_Location,cur_Order,cur_RSSI);
+                      this.fetchdatachk('check_in',cur_Location,cur_Order,cur_RSSI);
                     } else {
                       Alert.alert("Error","ไม่สามารถ Check-In ได้กรุณาเดินไปที่จุดทีกำหนด\nและทำใหม่อีกครั้ง", [{text: "OK", onPress: () => this.setModalVisible(!modalVisible)}])
                     }
@@ -274,7 +294,7 @@ export default class  Menu extends Component {
                     style={{ ...styles.openButton, backgroundColor: "#E5AC0A",justifyContent:'center',}}
                     onPress={() => {
                       if (cur_Location != "000" && cur_RSSI > minChkInOut) {
-                        this.fetchdatachk('chk_out',cur_Location,cur_Order,cur_RSSI);
+                        this.fetchdatachk('check_out',cur_Location,cur_Order,cur_RSSI);
                       }else{
                         Alert.alert("Error","ไม่สามารถ Check-Out ได้กรุณาเดินไปที่จุดทีกำหนด\nและทำใหม่อีกครั้ง", [{text: "OK", onPress: () => this.setModalVisible(!modalVisible)}])
                       }
@@ -344,19 +364,19 @@ export default class  Menu extends Component {
       <WebView source={{ uri: 'http://192.168.101.201/'+cur_Location}} />
       <View style={{flexDirection: 'row', backgroundColor: '#E0E0E0',justifyContent:'center'}}>
           <View style={{ flexDirection: 'row',alignItems:'center',justifyContent:'center',padding:1,width:'20%'}}>
-              <Text>{this.state.status}</Text>
+              <Text>{status}</Text>
           </View>
           <View style={{ flexDirection: 'row',alignItems:'center',justifyContent:'center',padding:1,width:'20%'}}>
-              <Text>{this.state.cur_Message}</Text>
+              <Text>{cur_Message}</Text>
           </View>
           <View style={{ flexDirection: 'row',alignItems:'center',justifyContent:'center',padding:1,width:'20%'}}>
-              <Text>{this.state.cur_Location}</Text>
+              <Text>{cur_Location}</Text>
           </View>
           <View style={{ flexDirection: 'row',alignItems:'center',justifyContent:'center',padding:1,width:'20%'}}>
-              <Text>{this.state.cur_Order}</Text>
+              <Text>{cur_Order}</Text>
           </View>
           <View style={{ flexDirection: 'row',alignItems:'center',justifyContent:'center',padding:1,width:'20%'}}>
-              <Text>{this.state.cur_RSSI}</Text>
+              <Text>{cur_RSSI}</Text>
           </View>
       </View>
     </>

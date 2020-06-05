@@ -125,16 +125,15 @@ export default class ProfileCardView extends Component {
 
 
 verifypassword () {
-  Alert.alert("รหัสถูกต้อง", "ถูกต้องนะครับ แก้ไขเรียบร้อย",[{text: "OKAY", onPress: () =>this.buttonPress()}]);
-  // if(this.state.code !== null && this.state.code !== ''){
-  //   if(this.state.SMS4ditgit === this.state.code){
-  //       Alert.alert("รหัสถูกต้อง", "ถูกต้องนะครับ แก้ไขเรียบร้อย",[{text: "OKAY", onPress: () =>this.buttonPress()}]);
-  //   }else{
-  //       Alert.alert("รหัสผิดพลาด", "รหัสไม่ถูกต้องน่ะครับ");
-  //   }
-  // }else{
-  //       Alert.alert("ผิดพลาด", "โปรดกรอกรหัสยืนยันตัวตน");
-  //   }
+  if(this.state.code !== null && this.state.code !== ''){
+    if(this.state.SMS4ditgit === this.state.code){
+        Alert.alert("รหัสถูกต้อง", "ถูกต้องนะครับ แก้ไขเรียบร้อย",[{text: "OKAY", onPress: () =>this.buttonPress()}]);
+    }else{
+        Alert.alert("รหัสผิดพลาด", "รหัสไม่ถูกต้องน่ะครับ");
+    }
+  }else{
+        Alert.alert("ผิดพลาด", "โปรดกรอกรหัสยืนยันตัวตน");
+    }
 }
 
   

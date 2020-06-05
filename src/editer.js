@@ -121,7 +121,6 @@ export default class editer extends Component {
   fetchdata = async () => {
     //===============================================================================
           var data = await RNFS.readFile( this.state.avatarSource.uri, 'base64').then(res => { return res });
-          // console.log(data);
           
           const formData = new FormData();
           formData.append("Tracker_ID", this.state.trackerID);
@@ -135,7 +134,7 @@ export default class editer extends Component {
           formData.append("type",'image/jpg');
           formData.append("base64",data);
 
-          // console.log(formData);
+          console.log(formData);
           axios.post('http://192.168.101.201/UpdateUser.php', formData, {
             headers: {
             'accept': 'application/json',
@@ -143,7 +142,7 @@ export default class editer extends Component {
             }
             }
             ).then(res => {
-            console.log(res);
+            // console.log(res);
             this.storeData()
             })
             .catch(err => {

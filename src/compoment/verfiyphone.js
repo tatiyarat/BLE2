@@ -142,17 +142,16 @@ convermobile2trackerID(){
 }
 
 async verifypassword () {
-  await this.convermobile2trackerID();
-  Alert.alert("รหัสถูกต้อง:\n"+this.state.trackerID, "ถูกต้องนะครับบบบบบ ",[{text: "OK", onPress: () =>this.buttonPress()}]);
-  // if(this.state.code !== null && this.state.code !== ''){
-  //   if(this.state.SMS4ditgit === this.state.code){
-     
-  //   }else{
-  //       Alert.alert("รหัสผิดพลาด", "รหัสไม่ถูกต้องน่ะครับบบบ");
-  //   }
-  // }else{
-  //       Alert.alert("ผิดพลาด", "โปรดกรอกรหัสยืนยันตัวตน");
-  //   }
+  if(this.state.code !== null && this.state.code !== ''){
+    if(this.state.SMS4ditgit === this.state.code){
+      await this.convermobile2trackerID();
+    Alert.alert("รหัสถูกต้อง:\n"+this.state.trackerID, "ถูกต้องนะครับบบบบบ ",[{text: "OK", onPress: () =>this.buttonPress()}]);
+    }else{
+        Alert.alert("รหัสผิดพลาด", "รหัสไม่ถูกต้องน่ะครับบบบ");
+    }
+  }else{
+        Alert.alert("ผิดพลาด", "โปรดกรอกรหัสยืนยันตัวตน");
+    }
 }
 
   

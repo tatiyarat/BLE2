@@ -131,14 +131,14 @@ export default class  Menu extends Component {
     });
   } //startScan
 
-  handleDiscoverPeripheral(device) {
+  handleDiscoverPeripheral(peripheral) {
     this.setState({status:"Scanning.."})
     var canUpdate = 1
-    if (typeof device.name == "string" && device.name.indexOf("Holy") >= 0) {
-        var local_RSSI      = device.rssi
-        var local_Location  = device.name.split(":")[1]
-        var local_Order     = device.name.split(":")[2]
-        var local_Message   = device.name.split(":")[3]
+    if (typeof peripheral.name == "string" && peripheral.name.indexOf("Holy") >= 0) {
+        var local_RSSI      = peripheral.rssi
+        var local_Location  = peripheral.name.split(":")[1]
+        var local_Order     = peripheral.name.split(":")[2]
+        var local_Message   = peripheral.name.split(":")[3]
         if (local_RSSI > this.state.minRSSI) {
             this.setState({isScanFound:true})
             if ( (local_Location != this.state.get_Location) || (local_Order != this.state.get_Order) || (local_RSSI > this.state.get_RSSI) ) {
@@ -152,8 +152,8 @@ export default class  Menu extends Component {
                 }
               }
               if (canUpdate == 1) {
-                // while (this.state.isFetchData) {
-                // }
+                while (this.state.isFetchData) {
+                }
                 this.setState({ get_Location: local_Location});
                 this.setState({ get_Order: local_Order});
                 this.setState({ get_Message: local_Message});
@@ -166,34 +166,32 @@ export default class  Menu extends Component {
   }
 
   handleStopScan = async () => {
-    const { def_Location,def_Order,def_Message,def_RSSI} = this.state;
     if (!this.isScanFound) {
-      this.setState({ cur_Location: def_Location});
-      this.setState({ cur_Order: def_Order});
-      this.setState({ cur_Message:def_Message});
-      this.setState({ cur_RSSI: def_RSSI});
-      this.setState({ get_Location: def_Location});
-      this.setState({ get_Order: def_Order});
-      this.setState({ get_Message: def_Message});
-      this.setState({ get_RSSI: def_RSSI});
+      this.setState({ cur_Location: this.state.def_Location});
+      this.setState({ cur_Order: this.state.def_Order});
+      this.setState({ cur_Message: this.state.def_Message});
+      this.setState({ cur_RSSI: this.state.def_RSSI});
+      this.setState({ get_Location: this.state.def_Location});
+      this.setState({ get_Order: this.state.def_Order});
+      this.setState({ get_Message: this.state.def_Message});
+      this.setState({ get_RSSI: this.state.def_RSSI});
     }
     this.setState({isScanFound:false})
     this.startScan()
   } //function
 
   uploadDataToServer() {
-    const { get_typeEvent,get_RSSI,get_Order,get_Message,get_Location,cur_RSSI,cur_Location,cur_typeEvent,cur_Order, } = this.state;
-    if (get_Location != cur_Location) {
+    if (this.state.get_Location != this.state.cur_Location) {
       this.setState({ isFetchData: true });
       this.setState({status:"Upload.."})
-      this.setState({ cur_Location: get_Location});
-      this.setState({ cur_Order: get_Order});
-      this.setState({ cur_Message: get_Message});
-      this.setState({ cur_RSSI: get_RSSI});
-      this.setState({ cur_typeEvent: get_typeEvent});  
+      this.setState({ cur_Location: this.state.get_Location});
+      this.setState({ cur_Order: this.state.get_Order});
+      this.setState({ cur_Message: this.state.get_Message});
+      this.setState({ cur_RSSI: this.state.get_RSSI});
+      this.setState({ cur_typeEvent: this.state.get_typeEvent});  
       this.setState({ isFetchData: false });
-      this.fetchdata(cur_typeEvent,cur_Location,cur_Order,cur_RSSI);
-      console.log("Fetch = "+cur_Location+" : "+cur_Order);
+      this.fetchdatachk(this.state.cur_typeEvent,this.state.cur_Location,this.state.cur_Order,this.state.cur_RSSI);
+      console.log("Fetch = "+this.state.cur_Location+" : "+this.state.cur_Order);
     }
     setTimeout(() => {
       this.uploadDataToServer()
@@ -218,7 +216,8 @@ export default class  Menu extends Component {
     BleManager.enableBluetooth()
   }
 
-  fetchdata = async (event,cur_Location,cur_Order,cur_RSSI) => {
+
+  fetchdatachk = async (event,cur_Location,cur_Order,cur_RSSI) => {
 
     const formData = new FormData();
     const {cur_Message,minChkInOut} = this.state
@@ -238,6 +237,7 @@ export default class  Menu extends Component {
             Alert.alert("Check-Out: ลงเวลาออก","คุณ "+this.state.firstname+" "+this.state.lastname +"\nที่จุด ["+cur_Location+"] "+cur_Message+"\nณ วันที่ "+moment().format('DD/MM/YYYY, HH:mm'),[{text: "OK", onPress: () => this.setModalVisible(false)}])
           } else if (event == 'check_in'){
             Alert.alert("Check-In: ลงเวลาเข้า","คุณ "+this.state.firstname+" "+this.state.lastname +"\nที่จุด ["+cur_Location+"] "+cur_Message+"\nณ วันที่ "+moment().format('DD/MM/YYYY, HH:mm'),[{text: "OK", onPress: () => this.setModalVisible(false)}])
+            
           } else {
             // FAST-PASS event
           }        
